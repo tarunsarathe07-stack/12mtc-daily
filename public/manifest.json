@@ -1,0 +1,22 @@
+{
+  "name": "12 Minutes Daily",
+  "short_name": "12 Minutes",
+  "description": "CLAT current affairs in 12 minutes a day — 12 shorts, 12 quiz questions, daily battles. A 12 Minutes to CLAT product.",
+  "start_url": "/today",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1a1a2e",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
