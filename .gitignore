@@ -43,3 +43,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local Supabase CLI metadata
+supabase/.temp/
+.claude/
