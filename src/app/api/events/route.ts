@@ -9,6 +9,7 @@
 import { randomUUID } from "crypto";
 import { getStudentId, recordEvent, getRecentEvents } from "@/lib/student/data";
 import { requireAdmin, adminDenied } from "@/lib/auth/admin-guard";
+import { guardMutation } from "@/lib/security/guard";
 import type { ConversionEventType } from "@/lib/types/database";
 
 export const runtime = "nodejs";
@@ -36,6 +37,9 @@ const VALID_TYPES: ConversionEventType[] = [
 ];
 
 export async function POST(request: Request) {
+  const blocked = guardMutation(request, { bucket: "events", limit: 40, windowMs: 60_000 });
+  if (blocked) return blocked;
+
   try {
     const body = (await request.json()) as {
       eventType?: ConversionEventType;

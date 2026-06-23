@@ -561,7 +561,7 @@ export async function runIngestPipeline(options: {
         const itemId = randomUUID();
         const now = new Date().toISOString();
 
-        generatedItems.push({
+        const newItem: ContentItem = {
           id: itemId,
           slug: content.slug,
           title: content.title,
@@ -581,7 +581,8 @@ export async function runIngestPipeline(options: {
           daily_slot: null, // assigned when an admin publishes
           created_at: now,
           updated_at: now,
-        });
+        };
+        generatedItems.push(newItem);
 
         const rawQs = await generateQuizQuestions(
           content.title,
@@ -591,31 +592,31 @@ export async function runIngestPipeline(options: {
           content.difficulty,
           4
         );
-        for (const rq of rawQs) {
-          generatedQuestions.push({
-            id: randomUUID(),
-            content_item_id: itemId,
-            prompt: rq.prompt,
-            options: rq.options,
-            correct_option: rq.correct_option,
-            explanation: rq.explanation,
-            topic: content.topic_tags[0],
-            difficulty: content.difficulty,
-            source_citation: feedItem.source,
-            status: "draft", // questions also need review
-            created_at: now,
-          });
-        }
+        const itemQuestions: Question[] = rawQs.map((rq) => ({
+          id: randomUUID(),
+          content_item_id: itemId,
+          prompt: rq.prompt,
+          options: rq.options,
+          correct_option: rq.correct_option,
+          explanation: rq.explanation,
+          topic: content.topic_tags[0],
+          difficulty: content.difficulty,
+          source_citation: feedItem.source,
+          status: "draft", // questions also need review
+          created_at: now,
+        }));
+        generatedQuestions.push(...itemQuestions);
+
+        // Persist this item now (item before its questions for FK order) so a
+        // function timeout mid-run can never discard work already completed.
+        await upsertContentItems([newItem]);
+        if (itemQuestions.length > 0) await upsertQuestions(itemQuestions);
       } catch (err) {
         errors.push(
           `Failed to process "${feedItem.title}": ${err instanceof Error ? err.message : String(err)}`
         );
       }
     }
-
-    // 4. Persist (append-only — never touches previous days)
-    if (generatedItems.length > 0) await upsertContentItems(generatedItems);
-    if (generatedQuestions.length > 0) await upsertQuestions(generatedQuestions);
 
     await updatePipelineRun(runId, {
       status: "completed",

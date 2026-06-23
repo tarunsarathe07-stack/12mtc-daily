@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -22,6 +23,26 @@ import { Markdown } from "@/components/content/markdown";
 import { istDateLabel, istToday } from "@/lib/utils/date";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const item = await getContentBySlug(slug);
+  if (!item) return { title: "Study note" };
+  return {
+    title: item.title,
+    description: item.summary,
+    openGraph: {
+      type: "article",
+      title: item.title,
+      description: item.summary,
+      ...(item.image_url ? { images: [item.image_url] } : {}),
+    },
+  };
+}
 
 /** Pull "important terms" from the body's bold spans — honest extraction,
  *  no invented facts. */

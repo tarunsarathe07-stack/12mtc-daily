@@ -95,7 +95,7 @@ export function CardStack({ items, onActiveCard, bookmarkedIds, onBookmark }: Ca
       <footer className="mx-auto mt-5 flex w-full max-w-[690px] items-center justify-between gap-3 pb-3">
         <button onClick={goPrev} disabled={currentIndex === 0} className="stitch-pill inline-flex h-12 w-12 items-center justify-center text-primary disabled:opacity-35" aria-label="Previous card"><ChevronLeft className="h-5 w-5" /></button>
         <button onClick={goNext} className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-primary px-5 text-sm font-black text-white shadow-xl shadow-primary/20 transition hover:-translate-y-0.5">
-          <CheckCircle2 className="h-4 w-4" /> Mark as read
+          <CheckCircle2 className="h-4 w-4" /> Got it, next
         </button>
         {currentIndex === items.length - 1 ? (
           <Link href="/battle/queue?mode=daily" className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-saffron px-5 text-sm font-black text-ink shadow-xl shadow-saffron/20 transition hover:-translate-y-0.5"><Swords className="h-4 w-4" /> Quiz</Link>

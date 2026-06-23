@@ -8,9 +8,9 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 
 /**
- * CLAT Arena — a premium exam cockpit, not a game show.
- * Calm intensity: ink surfaces, hairline borders, deep-blue focus and saffron momentum,
- * coral reserved for urgency and wrong answers.
+ * CLAT quiz screen — calm, focused, exam-like.
+ * Dark ink surface keeps attention on the question; saffron marks progress,
+ * coral marks a wrong answer or a running-out timer.
  *
  * Server-authoritative: questions arrive WITHOUT answers; every submission
  * is scored by POST /api/battle/answer. CLAT scoring: +1 / −0.25 / 0,
@@ -68,15 +68,49 @@ export default function BattleRoomPage() {
 
   useEffect(() => {
     const raw = sessionStorage.getItem(`tmd-battle-${sessionId}`);
-    if (!raw) {
-      setMissing(true);
-      return;
+    if (raw) {
+      try {
+        setSession(JSON.parse(raw) as SessionPayload);
+        return;
+      } catch {
+        // fall through to server resume
+      }
     }
-    try {
-      setSession(JSON.parse(raw) as SessionPayload);
-    } catch {
-      setMissing(true);
-    }
+
+    // No local copy (e.g. the page was refreshed mid-battle). The server
+    // still holds the session — resume it and fast-forward past answered Qs.
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/battle/session?id=${sessionId}`, { cache: "no-store" });
+        if (!res.ok) {
+          if (!cancelled) setMissing(true);
+          return;
+        }
+        const data = await res.json();
+        if (cancelled) return;
+        const resumed: SessionPayload = {
+          sessionId: data.sessionId,
+          mode: data.mode,
+          topic: data.topic,
+          timePerQuestionSec: data.timePerQuestionSec,
+          bot: data.bot,
+          botDelaysMs: data.botDelaysMs,
+          questions: data.questions,
+        };
+        sessionStorage.setItem(`tmd-battle-${sessionId}`, JSON.stringify(resumed));
+        setSession(resumed);
+        const answered: number[] = Array.isArray(data.answeredIndexes) ? data.answeredIndexes : [];
+        if (answered.length > 0) {
+          setIdx(Math.min(answered.length, data.questions.length - 1));
+        }
+      } catch {
+        if (!cancelled) setMissing(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [sessionId]);
 
   const total = session?.questions.length ?? 0;
@@ -201,7 +235,7 @@ export default function BattleRoomPage() {
   if (!session || !question) {
     return (
       <div className="bg-ink flex min-h-dvh items-center justify-center">
-        <span className="animate-pulse text-white/40">Entering the arena…</span>
+        <span className="animate-pulse text-white/40">Loading your quiz…</span>
       </div>
     );
   }
@@ -216,8 +250,13 @@ export default function BattleRoomPage() {
   const timerUrgent = timeLeft <= 5;
 
   return (
-    <div className="surface-grid bg-ink flex min-h-dvh flex-col text-white">
-      {/* ── Cockpit header ── */}
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className="surface-grid bg-ink flex min-h-dvh flex-col text-white"
+    >
+      {/* ── Quiz header ── */}
       <header className="border-b border-white/[0.08]">
         <div className="mx-auto flex h-16 max-w-2xl items-center justify-between px-4 lg:max-w-4xl">
           <div className="flex items-center gap-2.5">
@@ -482,9 +521,9 @@ export default function BattleRoomPage() {
                     className="w-full rounded-xl bg-saffron py-3.5 text-sm font-black text-ink shadow-lg shadow-saffron/20 transition-colors hover:bg-saffron/90 disabled:opacity-60"
                   >
                     {finishing
-                      ? "Computing your rank…"
+                      ? "Calculating your score…"
                       : idx + 1 === total
-                      ? "Reveal final rank →"
+                      ? "See your score →"
                       : "Next question →"}
                   </button>
                 </motion.div>
@@ -493,6 +532,6 @@ export default function BattleRoomPage() {
           </motion.div>
         </AnimatePresence>
       </main>
-    </div>
+    </motion.div>
   );
 }

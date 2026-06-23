@@ -27,6 +27,7 @@ export const MOCK_USER: User = {
   streak_current: 3,
   streak_best: 7,
   streak_last_date: new Date().toISOString().split("T")[0],
+  streak_freezes: 1,
   league: "bronze",
   battles_played: 8,
   battles_won: 5,

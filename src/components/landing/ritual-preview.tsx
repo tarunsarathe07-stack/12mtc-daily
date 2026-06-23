@@ -57,7 +57,7 @@ export function RitualPreview() {
           <div className="mt-8 space-y-3">
             <div className="h-2 overflow-hidden rounded-full bg-primary/10"><motion.div className="h-full rounded-full bg-saffron" animate={{ width: `${((index + 1) / STAGES.length) * 100}%` }} /></div>
             <div className="flex items-center justify-between rounded-2xl bg-primary px-4 py-3 text-sm font-black text-white">
-              <span>Next action stays obvious</span><ArrowRight className="h-4 w-4 text-saffron" />
+              <span>You always know what&apos;s next</span><ArrowRight className="h-4 w-4 text-saffron" />
             </div>
           </div>
         </div>
