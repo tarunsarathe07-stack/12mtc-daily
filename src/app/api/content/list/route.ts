@@ -11,6 +11,7 @@ import {
   getContentItemsByStatus,
   getQuestionsForContentItem,
   getContentStats,
+  getDailyStatus,
 } from "@/lib/content/data";
 import { requireAdmin, adminDenied } from "@/lib/auth/admin-guard";
 
@@ -35,9 +36,14 @@ export async function GET(request: Request) {
     }))
   );
 
+  const [stats, dailyStatus] = await Promise.all([
+    getContentStats(),
+    getDailyStatus(),
+  ]);
+
   return Response.json({
     authVia: auth.via,
-    stats: await getContentStats(),
+    stats: { ...stats, todayPublished: dailyStatus.published },
     items: enriched,
   });
 }

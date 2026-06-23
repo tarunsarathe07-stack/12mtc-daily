@@ -87,7 +87,7 @@ export default function TodayPage() {
     href: "/battle/queue?mode=daily",
     helper: "12 questions with +1 / -0.25 scoring.",
   } : {
-    label: "Read today&apos;s 12",
+    label: "Read today's 12",
     href: "/shorts",
     helper: `${DAILY_TARGET - readToday} cards left in your daily loop.`,
   }, [isDone, readToday]);
@@ -134,8 +134,8 @@ export default function TodayPage() {
             <div className="grid gap-6 md:grid-cols-[1fr_auto] md:items-center">
               <div>
                 <p className="text-[11px] font-black uppercase tracking-[0.16em] opacity-65">Next up</p>
-                <h2 className="display-title mt-3 text-4xl sm:text-5xl">{isDone ? "Quiz is ready" : "Read today&apos;s 12"}</h2>
-                <p className="mt-3 max-w-lg text-base font-medium leading-7 opacity-75" dangerouslySetInnerHTML={{ __html: nextAction.helper }} />
+                <h2 className="display-title mt-3 text-4xl sm:text-5xl">{isDone ? "Quiz is ready" : "Read today's 12"}</h2>
+                <p className="mt-3 max-w-lg text-base font-medium leading-7 opacity-75">{nextAction.helper}</p>
               </div>
               <Link href={nextAction.href} className="group flex h-20 w-20 items-center justify-center rounded-full bg-white/45 text-ink shadow-inner transition-transform hover:scale-105 md:h-24 md:w-24" aria-label={nextAction.label}>
                 <ArrowRight className="h-9 w-9 transition-transform group-hover:translate-x-1" />
@@ -145,7 +145,7 @@ export default function TodayPage() {
 
           <div className="mb-8 flex items-start gap-3 rounded-2xl bg-white/70 px-4 py-3 text-sm shadow-sm ring-1 ring-border/60">
             <Radio className="mt-0.5 h-4 w-4 shrink-0 text-saffron" />
-            <p className="leading-6 text-muted-foreground"><span className="font-black text-foreground">Status:</span> {todayItems.length || visibleQueue.length} cards live today. Editors approve cards before they become student content.</p>
+            <p className="leading-6 text-muted-foreground"><span className="font-black text-foreground">12 cards ready today.</span> Updated for today&apos;s exam prep.</p>
           </div>
 
           <div className="grid gap-6 lg:grid-cols-[0.9fr_1.25fr]">

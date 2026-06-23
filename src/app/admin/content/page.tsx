@@ -50,6 +50,7 @@ interface Stats {
   approved: number;
   published: number;
   rejected: number;
+  todayPublished?: number;
 }
 
 type StatusFilter = "all" | "review" | "approved" | "published" | "rejected";
@@ -175,6 +176,9 @@ export default function AdminContentPage() {
             <h1 className="text-xl font-bold">Content Review Queue</h1>
             <p className="text-sm text-muted-foreground">
               Review, approve, or reject AI-generated content
+              {stats.todayPublished !== undefined && (
+                <> &mdash; <span className={stats.todayPublished >= 12 ? "text-primary font-semibold" : "text-amber-600 font-semibold"}>{stats.todayPublished}/12 published today</span></>
+              )}
             </p>
           </div>
         </div>
@@ -310,13 +314,13 @@ export default function AdminContentPage() {
             <CardContent className="py-12 text-center">
               <p className="text-muted-foreground">
                 {filter === "review"
-                  ? "No items pending review. Run the pipeline from the Admin Dashboard to generate content."
+                  ? "No cards waiting for review. Run the pipeline from Admin → Pipeline or wait for the daily cron."
                   : `No ${filter === "all" ? "" : filter} items.`}
               </p>
               {filter === "review" && (
-                <Link href="/admin">
+                <Link href="/admin/pipeline">
                   <Button variant="outline" size="sm" className="mt-3">
-                    Go to Dashboard
+                    Go to Pipeline
                   </Button>
                 </Link>
               )}

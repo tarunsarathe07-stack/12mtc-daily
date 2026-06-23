@@ -36,6 +36,7 @@ export default async function LandingPage() {
           <div className="flex items-center gap-2">
             {phone && <a href={`tel:${phone.replace(/\s/g, "")}`} className="hidden text-sm font-bold text-muted-foreground hover:text-primary lg:inline-flex"><Phone className="mr-1.5 h-4 w-4" />{phone}</a>}
             {youtube && <a href={youtube} target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="hidden h-9 w-9 items-center justify-center rounded-full text-muted-foreground hover:bg-saffron-soft hover:text-ink sm:inline-flex"><MonitorPlay className="h-4 w-4" /></a>}
+            <Link href="/login" className="hidden rounded-full px-4 py-2 text-sm font-bold text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary sm:inline-flex">Sign in</Link>
             <Link href="/today" className="cta-pill h-10 px-5 text-sm">Start today&apos;s 12</Link>
           </div>
         </div>
