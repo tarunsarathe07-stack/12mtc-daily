@@ -27,6 +27,7 @@ export interface User {
   streak_current: number;
   streak_best: number;
   streak_last_date: string | null;
+  streak_freezes: number;
   league: League;
   battles_played: number;
   battles_won: number;

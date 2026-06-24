@@ -4,10 +4,14 @@
  */
 
 import { getStudentId, toggleBookmark } from "@/lib/student/data";
+import { guardMutation } from "@/lib/security/guard";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
+  const blocked = guardMutation(request, { bucket: "bookmark-toggle", limit: 60, windowMs: 60_000 });
+  if (blocked) return blocked;
+
   const userId = await getStudentId();
   if (!userId) {
     return Response.json({ error: "Not signed in" }, { status: 401 });

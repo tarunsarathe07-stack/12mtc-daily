@@ -16,7 +16,9 @@ import { isMockMode } from "@/lib/content/config";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 120;
+// 300s is the Vercel Pro ceiling. Items are persisted incrementally in the
+// pipeline, so even a timeout keeps whatever was generated before the cutoff.
+export const maxDuration = 300;
 
 export async function GET(request: Request) {
   const cronSecret = process.env.CRON_SECRET;

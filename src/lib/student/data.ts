@@ -13,7 +13,7 @@
 import { useSupabaseStore } from "@/lib/content/config";
 import { istToday } from "@/lib/utils/date";
 import { XP_AWARDS } from "@/lib/gamification/xp";
-import { isStreakQualified, calculateNewStreak } from "@/lib/gamification/streaks";
+import { isStreakQualified, calculateNewStreak, MAX_STREAK_FREEZES } from "@/lib/gamification/streaks";
 import { getLeagueForXP } from "@/lib/gamification/leagues";
 import { withStore, readOnly } from "./local-store";
 import { MOCK_USER } from "@/lib/mock-data";
@@ -151,20 +151,30 @@ async function bumpActivity(
   return { ...current, ...next, streak_qualified: qualified };
 }
 
-/** Apply streak rules after an activity change. Returns the new streak. */
+/** Apply streak rules after an activity change. Returns the new streak.
+ *  Spends banked freezes to bridge missed days and awards a fresh freeze
+ *  each time the streak crosses a 7-day milestone (capped). */
 async function refreshStreak(userId: string, qualifiedToday: boolean): Promise<number> {
   const profile = await getProfile(userId);
   if (!profile) return 0;
-  const { newStreak, newBest } = calculateNewStreak(
+  const available = profile.streak_freezes ?? 0;
+  const { newStreak, newBest, freezesUsed } = calculateNewStreak(
     profile.streak_current,
     profile.streak_last_date,
-    qualifiedToday
+    qualifiedToday,
+    available
   );
-  if (qualifiedToday && newStreak !== profile.streak_current) {
+  if (qualifiedToday && (newStreak !== profile.streak_current || freezesUsed > 0)) {
+    let freezes = available - freezesUsed;
+    // Reward consistency: one freeze per 7-day milestone, capped.
+    if (newStreak > profile.streak_current && newStreak % 7 === 0) {
+      freezes = Math.min(MAX_STREAK_FREEZES, freezes + 1);
+    }
     await updateProfile(userId, {
       streak_current: newStreak,
       streak_best: Math.max(newBest, profile.streak_best),
       streak_last_date: istToday(),
+      streak_freezes: freezes,
     } as Partial<User>);
     return newStreak;
   }

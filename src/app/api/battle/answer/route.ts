@@ -20,12 +20,18 @@ import {
   addQuizAnswer,
 } from "@/lib/student/data";
 import { calculatePoints, isCorrect } from "@/lib/battle/scoring";
+import { guardMutation } from "@/lib/security/guard";
 
 export const runtime = "nodejs";
 
 const MAX_TIME_MS = 15000;
 
 export async function POST(request: Request) {
+  // Bursty by nature (one call per question), but 60/min/IP is well above any
+  // human pace and still throttles a script hammering the endpoint.
+  const blocked = guardMutation(request, { bucket: "battle-answer", limit: 60, windowMs: 60_000 });
+  if (blocked) return blocked;
+
   const userId = await getStudentId();
   if (!userId) {
     return Response.json({ error: "Not signed in" }, { status: 401 });

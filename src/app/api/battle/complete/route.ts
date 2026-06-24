@@ -23,12 +23,16 @@ import {
 import { determineWinner } from "@/lib/battle/scoring";
 import { calculateNewRating } from "@/lib/battle/elo";
 import { calculateBattleXP } from "@/lib/gamification/xp";
+import { guardMutation } from "@/lib/security/guard";
 
 export const runtime = "nodejs";
 
 const BOT_BASE_RATING = 1000;
 
 export async function POST(request: Request) {
+  const blocked = guardMutation(request, { bucket: "battle-complete", limit: 20, windowMs: 60_000 });
+  if (blocked) return blocked;
+
   const userId = await getStudentId();
   if (!userId) {
     return Response.json({ error: "Not signed in" }, { status: 401 });

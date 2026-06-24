@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { Flame, Trophy, Zap, Swords, Target, Phone, GraduationCap } from "lucide-react";
+import { Flame, Trophy, Zap, Swords, Target, Phone, GraduationCap, BookOpen } from "lucide-react";
 import { MOCK_USER, MOCK_MASTERY } from "@/lib/mock-data";
 import { LEAGUE_CONFIG } from "@/lib/types/database";
 import { getNextLeagueThreshold } from "@/lib/gamification/leagues";
@@ -337,9 +337,18 @@ export default function ProfilePage() {
           </FunnelLink>
           <Link
             href="/blog"
-            className="block text-center text-xs font-semibold text-primary hover:underline"
+            className="flex w-full items-center gap-3 rounded-2xl border border-border p-4 text-left transition-all hover:-translate-y-0.5 hover:bg-muted"
           >
-            Read CLAT guides on the blog →
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-saffron-soft text-saffron">
+              <BookOpen className="h-5 w-5" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-bold">CLAT guides</p>
+              <p className="text-xs text-muted-foreground">
+                Free strategy reads — current affairs, negative marking, syllabus.
+              </p>
+            </div>
+            <span className="text-sm font-bold text-muted-foreground">→</span>
           </Link>
         </section>
 

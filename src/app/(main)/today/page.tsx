@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Bookmark, BookOpen, Radio, Swords, Target, Zap } from "lucide-react";
+import { ArrowRight, Bookmark, BookOpen, Flame, GraduationCap, Radio, Shield, Swords, Target, Zap } from "lucide-react";
 import { TopBar } from "@/components/layout/top-bar";
 import { getPublishedContent, MOCK_MASTERY, MOCK_USER } from "@/lib/mock-data";
 import { istToday } from "@/lib/utils/date";
@@ -28,6 +28,7 @@ function sourceName(item: ContentItem): string {
 interface ServerProgress {
   readToday: number;
   streak: number;
+  streakFreezes: number;
   xp: number;
   rating: number;
   weakTopics: Array<{ topic: string; mastery_pct: number }>;
@@ -37,30 +38,44 @@ interface ServerProgress {
 
 export default function TodayPage() {
   const [allContent, setAllContent] = useState<ContentItem[]>(() => SHOW_LOCAL_DEMO ? getPublishedContent() : []);
+  // Only seed mock numbers in local demo mode. In production we start blank
+  // and show placeholders until the real progress arrives — no mock flash.
   const [progress, setProgress] = useState<ServerProgress>({
     readToday: 0,
-    streak: MOCK_USER.streak_current,
-    xp: MOCK_USER.xp,
-    rating: MOCK_USER.rating,
-    weakTopics: [...MOCK_MASTERY].sort((a, b) => a.mastery_pct - b.mastery_pct).slice(0, 4).map((m) => ({ topic: m.topic, mastery_pct: m.mastery_pct })),
+    streak: SHOW_LOCAL_DEMO ? MOCK_USER.streak_current : 0,
+    streakFreezes: SHOW_LOCAL_DEMO ? MOCK_USER.streak_freezes : 0,
+    xp: SHOW_LOCAL_DEMO ? MOCK_USER.xp : 0,
+    rating: SHOW_LOCAL_DEMO ? MOCK_USER.rating : 0,
+    weakTopics: SHOW_LOCAL_DEMO
+      ? [...MOCK_MASTERY].sort((a, b) => a.mastery_pct - b.mastery_pct).slice(0, 4).map((m) => ({ topic: m.topic, mastery_pct: m.mastery_pct }))
+      : [],
     readIds: [],
     bookmarks: [],
   });
   const [progressLoaded, setProgressLoaded] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+  const statsReady = progressLoaded || SHOW_LOCAL_DEMO;
 
   useEffect(() => {
     fetch("/api/content/published", { cache: "no-store" })
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error("content");
+        return r.json();
+      })
       .then((data) => { if (Array.isArray(data.items)) setAllContent(data.items); })
-      .catch(() => {});
+      .catch(() => setLoadError(true));
 
     fetch("/api/progress/today", { cache: "no-store" })
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error("progress");
+        return r.json();
+      })
       .then((data) => {
         if (typeof data.readToday === "number") {
           setProgress({
             readToday: data.readToday,
             streak: data.streak,
+            streakFreezes: typeof data.streakFreezes === "number" ? data.streakFreezes : 0,
             xp: data.xp,
             rating: data.rating,
             weakTopics: Array.isArray(data.weakTopics) ? data.weakTopics : [],
@@ -69,7 +84,7 @@ export default function TodayPage() {
           });
         }
       })
-      .catch(() => {})
+      .catch(() => setLoadError(true))
       .finally(() => setProgressLoaded(true));
   }, []);
 
@@ -81,15 +96,21 @@ export default function TodayPage() {
   const todayLabel = new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" });
   const weakTopics = progress.weakTopics.slice(0, 2);
   const savedItems = allContent.filter((item) => progress.bookmarks.includes(item.id)).slice(0, 3);
+  const freezes = progress.streakFreezes;
+  const streakMessage = isDone
+    ? `Streak protected today. See you tomorrow to make it ${progress.streak + 1}.`
+    : freezes > 0
+    ? `${freezes} streak freeze${freezes > 1 ? "s" : ""} banked, so one missed day won't break it — but read today's 12 to keep climbing.`
+    : "Miss today and it resets to 0. Read today's 12 to keep it alive.";
 
   const nextAction = useMemo(() => isDone ? {
-    label: "Take today\'s quiz",
+    label: "Take today's quiz",
     href: "/battle/queue?mode=daily",
-    helper: "12 questions with +1 / -0.25 scoring.",
+    helper: "12 questions, exam-style scoring: +1 right, −0.25 wrong.",
   } : {
     label: "Read today's 12",
     href: "/shorts",
-    helper: `${DAILY_TARGET - readToday} cards left in your daily loop.`,
+    helper: `${DAILY_TARGET - readToday} ${DAILY_TARGET - readToday === 1 ? "card" : "cards"} left to read today.`,
   }, [isDone, readToday]);
 
   return (
@@ -97,17 +118,28 @@ export default function TodayPage() {
       <TopBar streak={progress.streak} />
       <main className="min-h-dvh stitch-shell">
         <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
+          {loadError && (
+            <div className="mb-6 flex items-center justify-between gap-3 rounded-2xl border border-coral/30 bg-coral-soft px-4 py-3 text-sm">
+              <p className="font-medium text-foreground">Couldn&apos;t load the latest — check your connection.</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="shrink-0 rounded-full bg-coral px-3 py-1.5 text-xs font-black text-white transition hover:opacity-90"
+              >
+                Retry
+              </button>
+            </div>
+          )}
           <section className="mb-8">
             <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
               <div>
-                <p className="editorial-kicker text-primary">{todayLabel} · Daily loop</p>
-                <h1 className="display-title mt-3 text-4xl sm:text-5xl lg:text-6xl">Build today&apos;s momentum</h1>
-                <p className="mt-3 max-w-xl text-base leading-7 text-muted-foreground">One mission: finish the 12, take the quiz, revise what needs work.</p>
+                <p className="editorial-kicker text-primary">{todayLabel} · Today&apos;s edition</p>
+                <h1 className="display-title mt-3 text-4xl sm:text-5xl lg:text-6xl">Today&apos;s 12 cards</h1>
+                <p className="mt-3 max-w-xl text-base leading-7 text-muted-foreground">Read the cards, take the quiz, then revise what you missed.</p>
               </div>
               <div className="stitch-pill grid grid-cols-3 gap-1 p-1.5 md:min-w-[340px]">
                 <MiniStat value={`${readToday}/12`} label="read" />
-                <MiniStat value={`${progress.streak}`} label="streak" />
-                <MiniStat value={`${progress.rating}`} label="rating" />
+                <MiniStat value={statsReady ? `${progress.streak}` : "—"} label="streak" />
+                <MiniStat value={statsReady ? `${progress.rating}` : "—"} label="rating" />
               </div>
             </div>
           </section>
@@ -130,6 +162,26 @@ export default function TodayPage() {
             </div>
           </section>
 
+          {statsReady && progress.streak > 0 && (
+            <section className="mb-8 flex items-center gap-4 rounded-[1.5rem] border border-saffron/25 bg-white/70 px-5 py-4 shadow-sm ring-1 ring-border/50">
+              <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-saffron/15">
+                <Flame className="h-6 w-6 text-saffron" />
+                {freezes > 0 && (
+                  <span className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-white ring-2 ring-white" title={`${freezes} streak freeze${freezes > 1 ? "s" : ""}`}>
+                    <Shield className="h-3 w-3" />
+                  </span>
+                )}
+              </div>
+              <div className="min-w-0">
+                <p className="text-lg font-black leading-tight text-foreground">
+                  {progress.streak}-day streak
+                  {freezes > 0 && <span className="ml-2 align-middle text-xs font-black text-primary">{freezes} freeze{freezes > 1 ? "s" : ""}</span>}
+                </p>
+                <p className="mt-0.5 text-sm leading-snug text-muted-foreground">{streakMessage}</p>
+              </div>
+            </section>
+          )}
+
           <section className="stitch-saffron-panel mb-10 overflow-hidden rounded-[2.4rem] p-6 text-ink sm:p-9">
             <div className="grid gap-6 md:grid-cols-[1fr_auto] md:items-center">
               <div>
@@ -137,7 +189,7 @@ export default function TodayPage() {
                 <h2 className="display-title mt-3 text-4xl sm:text-5xl">{isDone ? "Quiz is ready" : "Read today's 12"}</h2>
                 <p className="mt-3 max-w-lg text-base font-medium leading-7 opacity-75">{nextAction.helper}</p>
               </div>
-              <Link href={nextAction.href} className="group flex h-20 w-20 items-center justify-center rounded-full bg-white/45 text-ink shadow-inner transition-transform hover:scale-105 md:h-24 md:w-24" aria-label={nextAction.label}>
+              <Link href={nextAction.href} className="group animate-breathe flex h-20 w-20 items-center justify-center rounded-full bg-white/45 text-ink shadow-inner transition-colors hover:bg-white/65 md:h-24 md:w-24" aria-label={nextAction.label}>
                 <ArrowRight className="h-9 w-9 transition-transform group-hover:translate-x-1" />
               </Link>
             </div>
@@ -196,7 +248,7 @@ export default function TodayPage() {
             </section>
           </div>
 
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Link href="/shorts?day=saved" className="stitch-card flex items-center gap-3 rounded-[1.5rem] p-4">
               <Bookmark className="h-5 w-5 text-saffron" /><span className="font-black">Saved cards</span><span className="ml-auto text-sm text-muted-foreground">{savedItems.length}</span>
             </Link>
@@ -205,6 +257,9 @@ export default function TodayPage() {
             </Link>
             <Link href="/battle" className="stitch-card flex items-center gap-3 rounded-[1.5rem] p-4">
               <Swords className="h-5 w-5 text-saffron" /><span className="font-black">Quiz battle</span><ArrowRight className="ml-auto h-4 w-4" />
+            </Link>
+            <Link href="/blog" className="stitch-card flex items-center gap-3 rounded-[1.5rem] p-4">
+              <GraduationCap className="h-5 w-5 text-primary" /><span className="font-black">CLAT guides</span><ArrowRight className="ml-auto h-4 w-4" />
             </Link>
           </div>
         </div>

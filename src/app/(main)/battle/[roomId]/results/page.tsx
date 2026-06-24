@@ -512,9 +512,16 @@ export default function BattleResultsPage() {
 
           <Link
             href="/blog"
-            className="block text-center text-xs font-semibold text-primary hover:underline"
+            className="flex items-center gap-3 rounded-2xl border border-border p-4 transition-all hover:-translate-y-0.5 hover:bg-muted"
           >
-            Read CLAT guides on the blog →
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-saffron-soft text-saffron">
+              <BookOpen className="h-5 w-5" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-bold">CLAT guides</p>
+              <p className="text-xs text-muted-foreground">Free strategy reads to sharpen your prep.</p>
+            </div>
+            <span className="text-sm font-bold text-muted-foreground">→</span>
           </Link>
         </div>
 

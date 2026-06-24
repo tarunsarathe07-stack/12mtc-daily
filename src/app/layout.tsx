@@ -14,11 +14,31 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://12minutesdaily.com";
+
 export const metadata: Metadata = {
-  title: "12 Minutes Daily — CLAT Current Affairs in 12 Minutes a Day",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "12 Minutes Daily — CLAT Current Affairs in 12 Minutes a Day",
+    template: "%s · 12 Minutes Daily",
+  },
   description:
     "12 shorts, 12 quiz questions, one daily battle. Master CLAT current affairs in 12 minutes a day. A 12 Minutes to CLAT product.",
   manifest: "/manifest.json",
+  keywords: ["CLAT", "current affairs", "legal reasoning", "CLAT preparation", "law entrance"],
+  openGraph: {
+    type: "website",
+    siteName: "12 Minutes Daily",
+    title: "12 Minutes Daily — CLAT Current Affairs in 12 Minutes a Day",
+    description:
+      "12 shorts, 12 quiz questions, one daily battle. Master CLAT current affairs in 12 minutes a day.",
+    url: SITE_URL,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "12 Minutes Daily — CLAT Current Affairs in 12 Minutes a Day",
+    description: "Master CLAT current affairs in 12 minutes a day.",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -29,8 +49,6 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
   themeColor: "#283593",
 };
 

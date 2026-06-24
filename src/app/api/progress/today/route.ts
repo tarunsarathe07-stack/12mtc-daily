@@ -52,6 +52,7 @@ export async function GET() {
       readIds,
       bookmarks,
       streak: profile?.streak_current ?? 0,
+      streakFreezes: profile?.streak_freezes ?? 0,
       xp: profile?.xp ?? 0,
       rating: profile?.rating ?? 1000,
       league: profile?.league ?? "bronze",

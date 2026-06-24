@@ -451,8 +451,17 @@
   50% { box-shadow: 0 0 0 8px rgb(249 160 27 / 0); }
 }
 
+@keyframes breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
 .animate-flame { animation: flame-flicker 1.4s ease-in-out infinite; }
 .animate-float { animation: float-slow 5s ease-in-out infinite; }
+.animate-breathe { animation: breathe 2.6s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .animate-flame, .animate-float, .animate-breathe, .animate-pulse-amber, .animate-shimmer { animation: none; }
+}
 .animate-shimmer {
   background: linear-gradient(90deg, transparent 25%, rgb(255 255 255 / 0.06) 50%, transparent 75%);
   background-size: 200% 100%;

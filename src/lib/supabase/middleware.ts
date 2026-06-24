@@ -3,6 +3,15 @@ import { NextResponse, type NextRequest } from "next/server";
 import { isSupabaseConfigured } from "@/lib/content/config";
 
 export async function updateSession(request: NextRequest) {
+  // ─── /guides is a permanent alias for the funnel blog ───
+  // Handled first so it works in every mode and never 404s or hits auth gating.
+  const { pathname: requestPath } = request.nextUrl;
+  if (requestPath === "/guides" || requestPath.startsWith("/guides/")) {
+    const url = request.nextUrl.clone();
+    url.pathname = requestPath.replace(/^\/guides/, "/blog") || "/blog";
+    return NextResponse.redirect(url);
+  }
+
   // ─── Mock mode: skip Supabase auth entirely (local dev/demo) ───
   if (process.env.NEXT_PUBLIC_MOCK_MODE === "true") {
     return NextResponse.next({ request });
@@ -19,6 +28,9 @@ export async function updateSession(request: NextRequest) {
       pathname.startsWith("/api") || // API routes enforce their own guards
       pathname.startsWith("/_next") ||
       pathname.startsWith("/icons") ||
+      pathname.startsWith("/icon") || // app/icon.svg metadata route
+      pathname.startsWith("/apple-icon") || // app/apple-icon.svg metadata route
+      pathname === "/favicon.ico" ||
       pathname === "/manifest.json";
     if (isPublic) {
       return NextResponse.next({ request });
@@ -33,6 +45,10 @@ export async function updateSession(request: NextRequest) {
     pathname === "/" ||
     pathname === "/robots.txt" ||
     pathname === "/sitemap.xml" ||
+    pathname === "/favicon.ico" ||
+    pathname === "/manifest.json" ||
+    pathname.startsWith("/icon") || // app/icon.svg + /icons/*
+    pathname.startsWith("/apple-icon") || // app/apple-icon.svg
     pathname.startsWith("/blog") || // landing + funnel blog are public
     pathname.startsWith("/auth"); // OAuth/email-confirm callback
 

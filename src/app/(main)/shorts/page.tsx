@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { Swords, Bookmark, Search, X } from "lucide-react";
+import { Swords, Bookmark, Search, X, Flame, Sparkles, ArrowRight } from "lucide-react";
 import { TopBar } from "@/components/layout/top-bar";
 import { CardStack } from "@/components/cards/card-stack";
 import { CardSkeleton } from "@/components/cards/card-skeleton";
@@ -33,11 +33,13 @@ export default function ShortsPage() {
     SHOW_LOCAL_DEMO ? getPublishedContent() : []
   );
   const [itemsLoading, setItemsLoading] = useState(!SHOW_LOCAL_DEMO);
+  const [loadError, setLoadError] = useState(false);
   const [filter, setFilter] = useState<Filter>(istToday());
   const [query, setQuery] = useState("");
   const [onLastCard, setOnLastCard] = useState(false);
   const [streak, setStreak] = useState(MOCK_USER.streak_current);
   const [bookmarkIds, setBookmarkIds] = useState<string[]>([]);
+  const [celebrate, setCelebrate] = useState(false);
   const readSent = useRef(new Set<string>());
   const completionLogged = useRef(false);
 
@@ -55,11 +57,14 @@ export default function ShortsPage() {
   // local mock mode may use demo cards so the interaction can be previewed.
   useEffect(() => {
     fetch("/api/content/published", { cache: "no-store" })
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error("content");
+        return r.json();
+      })
       .then((data) => {
         if (Array.isArray(data.items)) setItems(data.items);
       })
-      .catch(() => {})
+      .catch(() => setLoadError(true))
       .finally(() => setItemsLoading(false));
     fetch("/api/progress/today", { cache: "no-store" })
       .then((r) => r.json())
@@ -122,6 +127,7 @@ export default function ShortsPage() {
             data.readToday >= Math.min(12, filtered.length)
           ) {
             completionLogged.current = true;
+            setCelebrate(true);
             fetch("/api/events", {
               method: "POST",
               headers: { "content-type": "application/json" },
@@ -154,6 +160,18 @@ export default function ShortsPage() {
   return (
     <>
       <TopBar title="News" streak={streak} />
+
+      {loadError && (
+        <div className="mx-auto mt-3 flex w-full max-w-7xl items-center justify-between gap-3 rounded-2xl border border-coral/30 bg-coral-soft px-4 py-3 text-sm sm:px-6 lg:px-8">
+          <p className="font-medium text-foreground">Couldn&apos;t load the news — check your connection.</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="shrink-0 rounded-full bg-coral px-3 py-1.5 text-xs font-black text-white transition hover:opacity-90"
+          >
+            Retry
+          </button>
+        </div>
+      )}
 
       {/* Search the whole archive */}
       <div className="mx-auto w-full max-w-7xl px-4 pt-3 sm:px-6 lg:px-8">
@@ -272,7 +290,7 @@ export default function ShortsPage() {
       )}
 
       {/* Finished the deck → funnel into the quiz */}
-      {onLastCard && (
+      {onLastCard && !celebrate && (
         <div className="fixed inset-x-0 bottom-20 z-30 px-4">
           <Link
             href="/battle/queue?mode=daily"
@@ -281,6 +299,54 @@ export default function ShortsPage() {
             <Swords className="h-4 w-4" />
             Done reading? Take today&apos;s quiz
           </Link>
+        </div>
+      )}
+
+      {/* All 12 read → celebrate, then funnel into the quiz */}
+      {celebrate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/70 px-6 backdrop-blur-sm">
+          {/* confetti dots */}
+          <div className="pointer-events-none absolute inset-0 overflow-hidden">
+            {Array.from({ length: 14 }).map((_, i) => (
+              <span
+                key={i}
+                className="animate-float absolute h-2 w-2 rounded-full"
+                style={{
+                  left: `${(i * 37) % 100}%`,
+                  top: `${(i * 53) % 100}%`,
+                  background: i % 2 ? "#f9a01b" : "#283593",
+                  animationDelay: `${(i % 5) * 0.3}s`,
+                  opacity: 0.8,
+                }}
+              />
+            ))}
+          </div>
+          <div className="relative w-full max-w-sm rounded-[2rem] bg-card p-8 text-center shadow-2xl">
+            <div className="animate-pulse-amber mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-saffron/18">
+              <Flame className="animate-flame h-10 w-10 text-saffron" />
+            </div>
+            <p className="editorial-kicker mt-5 text-saffron">All 12 read</p>
+            <h2 className="display-title mt-2 text-3xl">Today&apos;s reading is done</h2>
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">
+              {streak > 0 ? (
+                <>You&apos;re on a <span className="font-black text-foreground">{streak}-day streak</span>. Lock it in with today&apos;s quiz.</>
+              ) : (
+                <>Now test yourself — 12 questions, exam scoring.</>
+              )}
+            </p>
+            <Link
+              href="/battle/queue?mode=daily"
+              className="mt-6 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-saffron text-sm font-black text-ink shadow-sm shadow-saffron/25 transition hover:-translate-y-0.5"
+            >
+              <Sparkles className="h-4 w-4" /> Take today&apos;s quiz <ArrowRight className="h-4 w-4" />
+            </Link>
+            <button
+              onClick={() => setCelebrate(false)}
+              className="mt-3 text-sm font-bold text-muted-foreground underline-offset-4 hover:underline"
+            >
+              Keep reading
+            </button>
+          </div>
         </div>
       )}
     </>
