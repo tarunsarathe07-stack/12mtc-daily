@@ -18,7 +18,7 @@ const NAV = [
   { href: "/profile", label: "Profile" },
 ] as const;
 
-export function TopNav() {
+export function TopNav({ isAdmin = false }: { isAdmin?: boolean }) {
   const pathname = usePathname();
   const phone = process.env.NEXT_PUBLIC_CONTACT_PHONE;
   const youtube = process.env.NEXT_PUBLIC_YOUTUBE_URL;
@@ -61,6 +61,26 @@ export function TopNav() {
               </Link>
             );
           })}
+          {isAdmin && (
+            <Link
+              href="/admin"
+              className={cn(
+                "relative rounded-full px-3.5 py-2 text-sm font-bold transition-colors",
+                pathname.startsWith("/admin")
+                  ? "text-primary"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {pathname.startsWith("/admin") && (
+                <motion.span
+                  layoutId="topnav-active"
+                  className="absolute inset-0 rounded-full bg-primary/10 ring-1 ring-primary/10"
+                  transition={{ type: "spring", stiffness: 400, damping: 34 }}
+                />
+              )}
+              <span className="relative">Admin</span>
+            </Link>
+          )}
         </nav>
 
         <div className="ml-auto flex items-center gap-1.5">

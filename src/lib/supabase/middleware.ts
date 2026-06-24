@@ -86,7 +86,7 @@ export async function updateSession(request: NextRequest) {
       .in("role", ["admin", "editor"]);
     if (!roles || roles.length === 0) {
       const url = request.nextUrl.clone();
-      url.pathname = "/today";
+      url.pathname = "/access-denied";
       return NextResponse.redirect(url);
     }
     return supabaseResponse;

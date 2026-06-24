@@ -1,14 +1,33 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { ArrowRight, MonitorPlay, Phone } from "lucide-react";
 import { Crown } from "@/components/brand/crown";
 import { Reveal, Stagger, StaggerItem } from "@/components/effects/reveal";
 import { RitualPreview } from "@/components/landing/ritual-preview";
 import { getBlogSource } from "@/lib/blog/source";
+import { createClient } from "@/lib/supabase/server";
+import { isSupabaseConfigured, isMockMode } from "@/lib/content/config";
 
 export default async function LandingPage() {
   const guides = (await getBlogSource().getAllPosts().catch(() => [])).slice(0, 3);
   const phone = process.env.NEXT_PUBLIC_CONTACT_PHONE;
   const youtube = process.env.NEXT_PUBLIC_YOUTUBE_URL;
+
+  let userEmail: string | null = null;
+  try {
+    if (isSupabaseConfigured() && !isMockMode()) {
+      const supabase = await createClient();
+      const { data } = await supabase.auth.getUser();
+      userEmail = data.user?.email ?? null;
+    }
+  } catch {}
+
+  async function handleSignOut() {
+    "use server";
+    const supabase = await createClient();
+    await supabase.auth.signOut();
+    redirect("/");
+  }
 
   return (
     <div className="min-h-dvh stitch-shell text-foreground">
@@ -36,8 +55,17 @@ export default async function LandingPage() {
           <div className="flex items-center gap-2">
             {phone && <a href={`tel:${phone.replace(/\s/g, "")}`} className="hidden text-sm font-bold text-muted-foreground hover:text-primary lg:inline-flex"><Phone className="mr-1.5 h-4 w-4" />{phone}</a>}
             {youtube && <a href={youtube} target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="hidden h-9 w-9 items-center justify-center rounded-full text-muted-foreground hover:bg-saffron-soft hover:text-ink sm:inline-flex"><MonitorPlay className="h-4 w-4" /></a>}
-            <Link href="/login" className="hidden rounded-full px-4 py-2 text-sm font-bold text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary sm:inline-flex">Sign in</Link>
-            <Link href="/today" className="cta-pill h-10 px-5 text-sm">Start today&apos;s 12</Link>
+            {userEmail ? (
+              <>
+                <Link href="/profile" className="hidden rounded-full px-4 py-2 text-sm font-bold text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary sm:inline-flex">Profile</Link>
+                <form action={handleSignOut}>
+                  <button type="submit" className="hidden rounded-full px-4 py-2 text-sm font-bold text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary sm:inline-flex">Log out</button>
+                </form>
+              </>
+            ) : (
+              <Link href="/login" className="hidden rounded-full px-4 py-2 text-sm font-bold text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary sm:inline-flex">Sign in</Link>
+            )}
+            <Link href="/today" className="cta-pill h-10 px-5 text-sm">{userEmail ? "Continue" : "Start today’s 12"}</Link>
           </div>
         </div>
       </header>
