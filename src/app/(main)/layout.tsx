@@ -17,12 +17,8 @@ export default async function MainLayout({
         data: { user },
       } = await supabase.auth.getUser();
       if (user) {
-        const { data: roles } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", user.id)
-          .in("role", ["admin", "editor"]);
-        isAdmin = (roles?.length ?? 0) > 0;
+        const { data: isAdminOrEditor } = await supabase.rpc("is_admin_or_editor");
+        isAdmin = Boolean(isAdminOrEditor);
       }
     }
   } catch {}

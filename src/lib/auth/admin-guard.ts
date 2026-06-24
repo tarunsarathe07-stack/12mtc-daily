@@ -40,16 +40,12 @@ export async function requireAdmin(request: Request): Promise<AdminCheck> {
         return { ok: false, status: 401, error: "Not authenticated" };
       }
 
-      const { data: roles, error } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id)
-        .in("role", ["admin", "editor"]);
+      const { data: isAdminOrEditor, error } = await supabase.rpc("is_admin_or_editor");
 
       if (error) {
         return { ok: false, status: 500, error: "Role check failed" };
       }
-      if (!roles || roles.length === 0) {
+      if (!isAdminOrEditor) {
         return { ok: false, status: 403, error: "Admin or editor role required" };
       }
       return { ok: true, via: "supabase-role", userId: user.id };

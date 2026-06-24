@@ -79,12 +79,8 @@ export async function updateSession(request: NextRequest) {
       url.pathname = "/login";
       return NextResponse.redirect(url);
     }
-    const { data: roles } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id)
-      .in("role", ["admin", "editor"]);
-    if (!roles || roles.length === 0) {
+    const { data: isAdminOrEditor } = await supabase.rpc("is_admin_or_editor");
+    if (!isAdminOrEditor) {
       const url = request.nextUrl.clone();
       url.pathname = "/access-denied";
       return NextResponse.redirect(url);
