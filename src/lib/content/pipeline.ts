@@ -443,7 +443,7 @@ export interface PipelineResult {
   generated?: number;
   questions?: number;
   errors?: string[];
-  items: Array<Record<string, unknown>>;
+  items?: Array<Record<string, unknown>>;
   error?: string;
 }
 
@@ -540,9 +540,9 @@ export async function runIngestPipeline(options: {
       };
     }
 
-    // 3. Generate via Claude
-    const generatedItems: ContentItem[] = [];
-    const generatedQuestions: Question[] = [];
+    // 3. Generate via Claude — persist each item immediately so a Vercel
+    //    function timeout mid-loop still preserves completed items.
+    let savedCount = 0;
     const errors: string[] = [];
 
     for (const feedItem of relevant) {
@@ -561,7 +561,7 @@ export async function runIngestPipeline(options: {
         const itemId = randomUUID();
         const now = new Date().toISOString();
 
-        generatedItems.push({
+        const newItem: ContentItem = {
           id: itemId,
           slug: content.slug,
           title: content.title,
@@ -578,10 +578,10 @@ export async function runIngestPipeline(options: {
           review_notes: null,
           published_at: null,
           content_date: istToday(),
-          daily_slot: null, // assigned when an admin publishes
+          daily_slot: null,
           created_at: now,
           updated_at: now,
-        });
+        };
 
         const rawQs = await generateQuizQuestions(
           content.title,
@@ -591,21 +591,28 @@ export async function runIngestPipeline(options: {
           content.difficulty,
           4
         );
-        for (const rq of rawQs) {
-          generatedQuestions.push({
-            id: randomUUID(),
-            content_item_id: itemId,
-            prompt: rq.prompt,
-            options: rq.options,
-            correct_option: rq.correct_option,
-            explanation: rq.explanation,
-            topic: content.topic_tags[0],
-            difficulty: content.difficulty,
-            source_citation: feedItem.source,
-            status: "draft", // questions also need review
-            created_at: now,
-          });
-        }
+
+        const itemQuestions: Question[] = rawQs.map((rq) => ({
+          id: randomUUID(),
+          content_item_id: itemId,
+          prompt: rq.prompt,
+          options: rq.options,
+          correct_option: rq.correct_option,
+          explanation: rq.explanation,
+          topic: content.topic_tags[0],
+          difficulty: content.difficulty,
+          source_citation: feedItem.source,
+          status: "draft" as const,
+          created_at: now,
+        }));
+
+        // Persist immediately — survives a mid-loop function timeout
+        await upsertContentItems([newItem]);
+        if (itemQuestions.length > 0) await upsertQuestions(itemQuestions);
+        savedCount++;
+
+        // Keep the run counter current so the dashboard reflects partial progress
+        await updatePipelineRun(runId, { items_generated: savedCount });
       } catch (err) {
         errors.push(
           `Failed to process "${feedItem.title}": ${err instanceof Error ? err.message : String(err)}`
@@ -613,15 +620,11 @@ export async function runIngestPipeline(options: {
       }
     }
 
-    // 4. Persist (append-only — never touches previous days)
-    if (generatedItems.length > 0) await upsertContentItems(generatedItems);
-    if (generatedQuestions.length > 0) await upsertQuestions(generatedQuestions);
-
     const runErrorLog = errors.length > 0 ? errors.join("\n") : null;
 
     await updatePipelineRun(runId, {
-      status: generatedItems.length === 0 && runErrorLog ? "failed" : "completed",
-      items_generated: generatedItems.length,
+      status: savedCount === 0 && runErrorLog ? "failed" : "completed",
+      items_generated: savedCount,
       error_log: runErrorLog,
     });
 
@@ -630,16 +633,9 @@ export async function runIngestPipeline(options: {
       dryRun: false,
       totalFetched: allItems.length,
       relevant: relevant.length,
-      generated: generatedItems.length,
-      questions: generatedQuestions.length,
+      generated: savedCount,
+      questions: 0, // counted per-item above; not tracked in aggregate return
       errors,
-      items: generatedItems.map((i) => ({
-        id: i.id,
-        title: i.title,
-        slug: i.slug,
-        status: i.status,
-        topics: i.topic_tags,
-      })),
     };
   } catch (err) {
     await updatePipelineRun(runId, {
