@@ -617,10 +617,12 @@ export async function runIngestPipeline(options: {
     if (generatedItems.length > 0) await upsertContentItems(generatedItems);
     if (generatedQuestions.length > 0) await upsertQuestions(generatedQuestions);
 
+    const runErrorLog = errors.length > 0 ? errors.join("\n") : null;
+
     await updatePipelineRun(runId, {
-      status: "completed",
+      status: generatedItems.length === 0 && runErrorLog ? "failed" : "completed",
       items_generated: generatedItems.length,
-      error_log: errors.length > 0 ? errors.join("\n") : null,
+      error_log: runErrorLog,
     });
 
     return {

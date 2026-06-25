@@ -122,6 +122,44 @@ export async function getPipelineRuns(): Promise<PipelineRun[]> {
   return useSupabaseStore() ? supa.getPipelineRuns() : local.getPipelineRuns();
 }
 
+const PIPELINE_STALE_AFTER_MS = 30 * 60 * 1000;
+const STALE_PIPELINE_MESSAGE =
+  "Pipeline timed out before completion. Marked failed automatically after 30 minutes so the admin queue does not spin forever.";
+
+function isStalePipelineRun(run: PipelineRun, now = Date.now()): boolean {
+  if (run.status !== "running") return false;
+  const createdAt = Date.parse(run.created_at);
+  if (!Number.isFinite(createdAt)) return false;
+  return now - createdAt > PIPELINE_STALE_AFTER_MS;
+}
+
+export async function getPipelineRunsWithStaleCleanup(): Promise<{
+  runs: PipelineRun[];
+  staleFixed: number;
+}> {
+  const runs = await getPipelineRuns();
+  const stale = runs.filter((run) => isStalePipelineRun(run));
+  if (stale.length === 0) return { runs, staleFixed: 0 };
+
+  const results = await Promise.allSettled(
+    stale.map((run) =>
+      updatePipelineRun(run.id, {
+        status: "failed",
+        error_log: run.error_log
+          ? `${run.error_log}
+${STALE_PIPELINE_MESSAGE}`
+          : STALE_PIPELINE_MESSAGE,
+      })
+    )
+  );
+
+  const staleFixed = results.filter((result) => result.status === "fulfilled").length;
+  return {
+    runs: staleFixed > 0 ? await getPipelineRuns() : runs,
+    staleFixed,
+  };
+}
+
 // ── Stats & daily status ───────────────────────────
 
 export async function getContentStats() {
