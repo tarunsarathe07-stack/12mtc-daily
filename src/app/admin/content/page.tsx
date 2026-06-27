@@ -402,6 +402,20 @@ export default function AdminContentPage() {
                   {/* Expanded detail */}
                   {isExpanded && (
                     <div className="border-t px-4 pb-4 pt-3 space-y-4">
+                      {/* Pipeline notes (CLAT category + selection reason) */}
+                      {item.review_notes && (
+                        <Card className="border-muted bg-muted/30">
+                          <CardContent className="p-3">
+                            <p className="text-xs font-semibold text-muted-foreground mb-1">
+                              Pipeline notes
+                            </p>
+                            <p className="text-xs text-muted-foreground font-mono">
+                              {item.review_notes}
+                            </p>
+                          </CardContent>
+                        </Card>
+                      )}
+
                       {/* Why it matters */}
                       {item.why_it_matters && (
                         <Card className="border-amber-200 bg-amber-50">

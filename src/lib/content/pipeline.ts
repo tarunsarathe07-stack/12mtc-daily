@@ -58,43 +58,107 @@ const SOURCE_BONUS: Record<string, number> = {
   PIB: 2,
   "PRS Legislative Research": 3,
   RBI: 3,
-  LiveLaw: 3,
-  "Bar and Bench": 2,
+  LiveLaw: 2,       // pure legal source — lower general bonus so it competes on merit
+  "Bar and Bench": 1,
   "Indian Express": 2,
   "The Hindu": 2,
 };
 
 const EXAM_HOOKS = [
+  // Legal / Constitutional — still important but no longer the only hooks
   "supreme court",
   "high court",
   "constitution",
   "constitutional",
-  "article ",
-  "schedule",
-  "act",
+  "fundamental rights",
+  "directive principle",
   "parliament",
   "election",
   "commission",
   "tribunal",
-  "authority",
-  "rti",
-  "fundamental",
-  "directive principle",
   "treaty",
   "convention",
-  "united nations",
-  "security council",
+  "rti",
+  "aadhaar",
+  "sovereignty",
+
+  // Governance / Polity
+  "lok sabha",
+  "rajya sabha",
+  "speaker",
+  "president",
+  "prime minister",
+  "cabinet",
+  "policy",
+  "scheme",
+  "voter",
+  "authority",
+
+  // Economy / Finance
   "rbi",
   "sebi",
+  "repo rate",
+  "inflation",
+  "gdp",
+  "budget",
+  "fiscal",
+  "monetary policy",
+  "gst",
+  "foreign direct investment",
+
+  // International Affairs
+  "g7",
+  "g20",
+  "quad",
+  "brics",
+  "asean",
+  "nato",
+  "united nations",
+  "security council",
+  "india-us",
+  "india-china",
+  "bilateral",
+  "diplomacy",
+  "sanctions",
+  "ceasefire",
+  "ukraine",
+  "israel",
+  "iran",
+  "summit",
+
+  // Environment / Science / Technology
+  "climate change",
+  "cop",
+  "heatwave",
+  "biodiversity",
+  "isro",
+  "chandrayaan",
+  "nuclear",
+  "carbon",
+  "net zero",
+
+  // Reports / Indices
   "report",
   "index",
   "survey",
-  "clearance",
-  "aadhaar",
-  "voter",
-  "sovereignty",
-  "diplomacy",
-  "heatwave",
+  "ranking",
+  "human development",
+  "hunger index",
+  "press freedom",
+  "happiness index",
+  "niti aayog",
+
+  // Arts / Culture / Heritage (official CLAT syllabus category)
+  "heritage",
+  "unesco",
+  "padma",
+  "national award",
+  "sahitya akademi",
+  "classical",
+  "archaeological",
+  "intangible heritage",
+  "cultural significance",
+  "art form",
 ];
 
 const LOW_VALUE_PATTERNS = [
@@ -156,12 +220,15 @@ const MARKET_TICKER_PATTERNS = [
   "stock market",
 ];
 
+// Topic priority drives the round-robin edition selector.
+// Legal moves below economy/environment to prevent court-news flooding
+// the daily 12 — still selected but doesn't get first pick every round.
 const TOPIC_PRIORITY: TopicTag[] = [
   "international",
   "polity",
-  "legal",
   "economy",
   "environment",
+  "legal",
   "reports",
   "awards",
 ];
@@ -280,7 +347,7 @@ function canAddToEdition(
     return false;
   }
 
-  const maxCourtLegal = limit >= 12 ? 4 : Math.max(3, Math.ceil(limit / 2));
+  const maxCourtLegal = limit >= 12 ? 3 : Math.max(2, Math.ceil(limit / 3));
   if (isCourtLegalItem(candidate) && courtLegalCount(selected) >= maxCourtLegal) {
     return false;
   }
@@ -348,8 +415,25 @@ function classify(text: string, source: string) {
 
   for (const topic of topics) {
     if (topic === "legal") {
-      score += 4;
+      // Base score for any legal story — reduced so routine court news
+      // doesn't automatically outrank major international/national events.
+      score += 2;
       reasons.push("legal/current-law hook");
+      // Extra bonus only for stories with genuine constitutional significance
+      const constitutionalSignal = [
+        "supreme court",
+        "constitutional bench",
+        "fundamental rights",
+        "article 32",
+        "article 226",
+        "constitution",
+        "constitutional validity",
+        "landmark",
+      ].some((term) => matchesTerm(lower, term));
+      if (constitutionalSignal) {
+        score += 2;
+        reasons.push("constitutional significance");
+      }
     } else if (topic === "polity" || topic === "international") {
       score += 3;
       reasons.push(`${topic} relevance`);
@@ -575,7 +659,7 @@ export async function runIngestPipeline(options: {
           difficulty: content.difficulty,
           status: "review",
           reviewed_by: null,
-          review_notes: null,
+          review_notes: `Score: ${feedItem.score} | Selected: ${feedItem.reason}`,
           published_at: null,
           content_date: istToday(),
           daily_slot: null,

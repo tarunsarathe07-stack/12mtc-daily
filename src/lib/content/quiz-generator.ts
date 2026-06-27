@@ -24,18 +24,27 @@ export async function generateQuizQuestions(
 ): Promise<GeneratedQuestion[]> {
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
 
-  const systemPrompt = `You are a CLAT (Common Law Admission Test) question setter.
-Create high-quality MCQs for law aspirants based on current affairs content.
+  const systemPrompt = `You are a CLAT (Common Law Admission Test) question setter specialising in the Current Affairs/GK section.
+
+CLAT Current Affairs questions are PASSAGE-BASED comprehension questions — not standalone legal theory MCQs.
+The real CLAT exam provides a 300-500 word passage and asks questions whose answers are in (or directly inferable from) the passage.
 
 Rules:
 - Each question has exactly 4 options labelled A, B, C, D.
 - Exactly one correct answer per question.
 - All wrong options (distractors) must be plausible but clearly incorrect.
 - Explanation must be 1-2 sentences explaining why the correct answer is right.
-- Questions should test comprehension, not just recall — include application-level questions.
-- Difficulty range: easy (recall), medium (comprehension/application), hard (analysis).
+- Questions should test comprehension and current-affairs awareness — not rote law doctrine.
+- Difficulty range: easy (direct recall from passage), medium (inference), hard (evaluation/application).
 - Never create "All of the above" or "None of the above" options.
-- Topic context: ${topic}. Difficulty target: ${difficulty}.`;
+- Topic context: ${topic}. Difficulty target: ${difficulty}.
+
+CRITICAL — passage-based restriction:
+- Every question MUST be answerable from the passage/summary provided — do not require knowledge of legal provisions, article numbers, or case law UNLESS they are explicitly stated in the passage.
+- DO NOT ask "Under which Article of the Constitution is X guaranteed?" unless the article number appears in the passage.
+- DO NOT ask procedural legal questions (e.g., "How many days for bail under PMLA?") unless stated in the passage.
+- GOOD question types: Who/What/Where/When from the passage; why the event matters; what organisation or country is mentioned; inference about significance.
+- BAD question types: Article/Section numbers not mentioned in passage; legal doctrines not explained in passage; case law not referenced in passage.`;
 
   const userPrompt = `Generate exactly ${count} CLAT-style MCQ questions from this content:
 

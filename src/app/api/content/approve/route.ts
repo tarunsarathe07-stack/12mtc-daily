@@ -62,6 +62,21 @@ export async function POST(request: Request) {
     };
     const newStatus = statusMap[action];
 
+    // Quality gate: publishing requires minimum viable content
+    if (action === "publish") {
+      const questions = await getQuestionsForContentItem(id);
+      const errors: string[] = [];
+      if (!existing.why_it_matters) errors.push("missing 'why it matters'");
+      if (!existing.source_urls || existing.source_urls.length === 0) errors.push("no source URL");
+      if (questions.length === 0) errors.push("no quiz questions");
+      if (errors.length > 0) {
+        return Response.json(
+          { error: `Cannot publish: ${errors.join("; ")}.` },
+          { status: 422 }
+        );
+      }
+    }
+
     let updated = await updateContentStatus(id, newStatus, notes);
 
     // Publishing → claim a slot in that day's edition of 12

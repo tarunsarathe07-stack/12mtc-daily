@@ -12,12 +12,26 @@ const VALID_TOPICS: TopicTag[] = [
   "polity", "legal", "international", "economy", "environment", "awards", "reports",
 ];
 
+// Official CLAT UG Current Affairs / GK syllabus categories
+const VALID_CLAT_CATEGORIES = [
+  "National Governance",    // Indian polity, government, parliament, schemes
+  "Legal & Constitutional", // SC/HC judgments, constitutional provisions, landmark cases
+  "International Affairs",  // foreign policy, bilateral, UN, global summits
+  "Economy & Finance",      // RBI, SEBI, budget, trade, GDP, monetary policy
+  "Environment & Science",  // climate, biodiversity, ISRO, technology
+  "Arts, Culture & Heritage", // UNESCO, heritage, awards, classical/folk arts, history
+  "Reports & Indices",      // surveys, rankings, government reports, committees
+] as const;
+
+type ClatCategory = typeof VALID_CLAT_CATEGORIES[number];
+
 export interface GeneratedContent {
   title: string;
   slug: string;
-  summary: string;        // 60-90 words
-  body: string;            // 300-500 words markdown
-  why_it_matters: string;  // 1 sentence
+  summary: string;          // 60-90 words
+  body: string;             // 300-500 words markdown
+  why_it_matters: string;   // "[Category] 1-sentence exam relevance"
+  clat_syllabus_category: ClatCategory;
   topic_tags: TopicTag[];
   difficulty: "easy" | "medium" | "hard";
 }
@@ -37,20 +51,23 @@ export async function generateContentFromArticle(
   const systemPrompt = `You are an expert CLAT (Common Law Admission Test) current-affairs content writer for Indian law aspirants.
 You create educational learning cards and blog explainers from real news.
 
+CLAT UG syllabus for Current Affairs/GK (official): contemporary events of national and international significance, arts and culture, historical events of continuing significance. This is NOT a law-only exam section — it is general current awareness.
+
 Rules:
-- Write for CLAT UG aspirants (17-22 year-olds preparing for India's national law entrance exam).
-- CLAT current affairs covers: Indian polity, legal developments, international relations, economy, environment, awards/reports.
+- Write for CLAT UG aspirants (17-22 year-olds) preparing India's national law entrance exam.
 - Summary must be 60-90 words, crisp and factual.
 - Blog body must be 300-500 words in markdown with sections: Background, Key Facts (bullet points), CLAT Relevance, Key Takeaways.
-- "Why it matters" is exactly 1 sentence linking the topic to CLAT preparation.
+- "why_it_matters" format: "[Category] One sentence explaining exam relevance." — the category MUST match the clat_syllabus_category exactly.
 - Slug must be lowercase-kebab-case, max 60 chars.
 - Topic tags from: polity, legal, international, economy, environment, awards, reports. Pick 1-2 most relevant.
 - Difficulty: easy (recall), medium (application), hard (analysis).
+- clat_syllabus_category must be exactly one of:
+  "National Governance" | "Legal & Constitutional" | "International Affairs" | "Economy & Finance" | "Environment & Science" | "Arts, Culture & Heritage" | "Reports & Indices"
 
 CRITICAL — factual accuracy:
-- ONLY include facts that are explicitly stated in the source material provided.
+- ONLY include facts explicitly stated in the source material.
 - Do NOT invent dates, provision numbers, case names, statistics, or names not present in the source.
-- If the source only provides a headline, write a shorter, more cautious summary. Do not pad with guesses.
+- If only a headline/snippet is available, write a shorter, cautious summary. Do not pad with guesses.
 - ${hasFullText ? "Full article text is provided — use it as the authoritative source." : "Only a headline/snippet is available — stick strictly to what is stated. Keep Key Facts brief."}`;
 
   const articleSection = hasFullText
@@ -71,7 +88,8 @@ Respond in this exact JSON format (no markdown fences, just raw JSON):
   "slug": "...",
   "summary": "...",
   "body": "## Background\\n...\\n\\n## Key Facts\\n...\\n\\n## CLAT Relevance\\n...\\n\\n## Key Takeaways\\n...",
-  "why_it_matters": "...",
+  "why_it_matters": "[Category] One sentence.",
+  "clat_syllabus_category": "National Governance",
   "topic_tags": ["..."],
   "difficulty": "easy|medium|hard"
 }`;
@@ -100,6 +118,11 @@ Respond in this exact JSON format (no markdown fences, just raw JSON):
   ) as TopicTag[];
   if (parsed.topic_tags.length === 0) {
     parsed.topic_tags = hintTopics.length > 0 ? [hintTopics[0]] : ["polity"];
+  }
+
+  // Validate CLAT syllabus category
+  if (!VALID_CLAT_CATEGORIES.includes(parsed.clat_syllabus_category as ClatCategory)) {
+    parsed.clat_syllabus_category = "National Governance";
   }
 
   // Ensure slug is clean
