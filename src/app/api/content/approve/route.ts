@@ -20,6 +20,7 @@ import {
   upsertQuestions,
   assignDailySlot,
 } from "@/lib/content/data";
+import { getPublishQualityIssues } from "@/lib/content/quality";
 import { requireAdmin, adminDenied } from "@/lib/auth/admin-guard";
 
 export const runtime = "nodejs";
@@ -65,13 +66,10 @@ export async function POST(request: Request) {
     // Quality gate: publishing requires minimum viable content
     if (action === "publish") {
       const questions = await getQuestionsForContentItem(id);
-      const errors: string[] = [];
-      if (!existing.why_it_matters) errors.push("missing 'why it matters'");
-      if (!existing.source_urls || existing.source_urls.length === 0) errors.push("no source URL");
-      if (questions.length === 0) errors.push("no quiz questions");
-      if (errors.length > 0) {
+      const issues = getPublishQualityIssues(existing, questions);
+      if (issues.length > 0) {
         return Response.json(
-          { error: `Cannot publish: ${errors.join("; ")}.` },
+          { error: `Cannot publish: ${issues.join(" ")}` },
           { status: 422 }
         );
       }

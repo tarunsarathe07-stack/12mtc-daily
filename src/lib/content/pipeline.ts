@@ -659,7 +659,7 @@ export async function runIngestPipeline(options: {
           difficulty: content.difficulty,
           status: "review",
           reviewed_by: null,
-          review_notes: `Score: ${feedItem.score} | Selected: ${feedItem.reason}`,
+          review_notes: `Score: ${feedItem.score} | Selected: ${feedItem.reason} | Syllabus category: ${content.clat_syllabus_category ?? ""}`,
           published_at: null,
           content_date: istToday(),
           daily_slot: null,

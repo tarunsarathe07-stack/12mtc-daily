@@ -19,6 +19,28 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { TOPIC_COLORS, type TopicTag } from "@/lib/types/database";
 
+const OUTSIDE_LEGAL_MARKERS = [
+  "res judicata","mens rea","actus reus","strict liability","absolute liability",
+  "basic structure","writ of mandamus","certiorari","habeas corpus",
+  "article 32","article 226","article 14","article 19","article 21","article 246",
+  "doctrine","ratio decidendi","obiter","stare decisis","special leave petition",
+  "criminal procedure code","indian penal code","evidence act",
+  "specific relief","tort","negligence","vicarious liability","promissory estoppel",
+];
+
+function outsideLegalWarnings(item: ContentItemWithQuestions): string[] {
+  const passageText = [item.title, item.summary, item.body, item.why_it_matters]
+    .filter(Boolean).join(" ").toLowerCase();
+  const warnings: string[] = [];
+  item.questions.forEach((q, i) => {
+    const qText = [q.prompt, ...q.options.map(o => o.text), q.explanation]
+      .join(" ").toLowerCase();
+    const hits = OUTSIDE_LEGAL_MARKERS.filter(t => qText.includes(t) && !passageText.includes(t));
+    if (hits.length > 0) warnings.push(`Q${i + 1}: outside legal knowledge (${hits.slice(0, 2).join(", ")})`);
+  });
+  return warnings;
+}
+
 interface QuestionItem {
   id: string;
   prompt: string;
@@ -448,6 +470,11 @@ export default function AdminContentPage() {
                           <p className="text-xs font-semibold text-muted-foreground mb-2">
                             Quiz Questions ({item.questions.length})
                           </p>
+                          {outsideLegalWarnings(item).map((w, i) => (
+                            <p key={i} className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1 mb-1">
+                              ⚠ {w}
+                            </p>
+                          ))}
                           <div className="space-y-2">
                             {item.questions.map((q, idx) => (
                               <div
