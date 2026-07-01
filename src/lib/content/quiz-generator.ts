@@ -44,7 +44,12 @@ CRITICAL — passage-based restriction:
 - DO NOT ask "Under which Article of the Constitution is X guaranteed?" unless the article number appears in the passage.
 - DO NOT ask procedural legal questions (e.g., "How many days for bail under PMLA?") unless stated in the passage.
 - GOOD question types: Who/What/Where/When from the passage; why the event matters; what organisation or country is mentioned; inference about significance.
-- BAD question types: Article/Section numbers not mentioned in passage; legal doctrines not explained in passage; case law not referenced in passage.`;
+- BAD question types: Article/Section numbers not mentioned in passage; legal doctrines not explained in passage; case law not referenced in passage.
+
+EXCEPTION — directly-connected general knowledge:
+- Up to 1-2 of the ${count} questions MAY test general current-affairs/GK knowledge that is directly and obviously connected to the passage's topic, even if the exact fact isn't spelled out in the passage word-for-word.
+- Example: a passage on Iran-US tensions may have a question about the Strait of Hormuz, IAEA, or the region the tension is centred in — these are common-knowledge facts tightly bound to the story, not obscure legal doctrine.
+- This exception is for well-known geography/organisations/context directly tied to the story — never for legal provisions, article numbers, or case law not in the passage.`;
 
   const userPrompt = `Generate exactly ${count} CLAT-style MCQ questions from this content:
 

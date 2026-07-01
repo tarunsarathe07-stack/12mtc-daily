@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Bookmark, CalendarDays, ChevronDown, ChevronRight, Share2, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { stripMarkdown } from "@/lib/utils/text";
 import type { ContentItem } from "@/lib/types/database";
 import { TopicArt } from "@/components/cards/topic-art";
 
@@ -23,12 +24,16 @@ export function ShortCard({ item, className, bookmarked, onBookmark }: ShortCard
   const displayDate = new Date(`${item.content_date ?? (item.published_at ?? item.created_at).slice(0, 10)}T12:00:00+05:30`).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
   const primaryTopic = item.topic_tags[0] ?? "current affairs";
   const bodyPreview: string[] = item.body
-    ? item.body.split(/\n\s*\n/).filter(Boolean).slice(0, 2)
+    ? item.body
+        .split(/\n\s*\n/)
+        .map((p) => stripMarkdown(p))
+        .filter(Boolean)
+        .slice(0, 2)
     : [];
 
   return (
     <article className={cn("stitch-card-strong flex h-full flex-col overflow-hidden rounded-[2.1rem] bg-white", className)}>
-      <div className="stitch-image-mask relative h-[30dvh] min-h-[210px] max-h-[330px] shrink-0 bg-primary/8">
+      <div className="stitch-image-mask relative h-[18dvh] min-h-[130px] max-h-[190px] shrink-0 bg-primary/8">
         {item.image_url ? (
           <img src={item.image_url} alt="" className="h-full w-full object-cover" loading="lazy" />
         ) : (
@@ -59,7 +64,7 @@ export function ShortCard({ item, className, bookmarked, onBookmark }: ShortCard
           </h2>
 
           <div className="mt-5 rounded-[1.45rem] border-l-4 border-saffron bg-[#f5f2fb] px-4 py-4 text-[15px] font-medium leading-7 text-foreground/82">
-            {item.summary}
+            {stripMarkdown(item.summary)}
           </div>
 
           {bodyPreview.length > 0 ? (
@@ -86,7 +91,7 @@ export function ShortCard({ item, className, bookmarked, onBookmark }: ShortCard
           <div className="flex items-center gap-2">
             <button className="rounded-full p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground" aria-label="Share"><Share2 className="h-4 w-4" /></button>
             <Link href={`/daily/${item.slug}`} className="inline-flex items-center gap-1 rounded-full bg-saffron px-4 py-2 text-xs font-black text-ink shadow-sm shadow-saffron/20 transition hover:-translate-y-0.5">
-              Study note <ChevronRight className="h-3.5 w-3.5" />
+              Full context <ChevronRight className="h-3.5 w-3.5" />
             </Link>
           </div>
         </div>
