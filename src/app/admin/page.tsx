@@ -40,6 +40,9 @@ interface PipelineResult {
   relevant?: number;
   generated?: number;
   questions?: number;
+  autoPublish?: boolean;
+  autoPublished?: number;
+  autoPublishSkipped?: number;
   errors?: string[];
   error?: string;
 }

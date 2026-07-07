@@ -4,7 +4,7 @@
  *
  * RSS discovery → CLAT relevance scoring → dedup → Claude generation
  * (short + explainer + 3-5 MCQs) → stored as status "review".
- * NOTHING auto-publishes — an admin must approve in /admin/content.
+ * Cron can opt into auto-publishing only after the same quality gates pass.
  */
 
 import Parser from "rss-parser";
@@ -16,11 +16,14 @@ import {
   isUrlIngested,
   addPipelineRun,
   updatePipelineRun,
+  updateContentStatus,
+  assignDailySlot,
 } from "@/lib/content/data";
 import { generateContentFromArticle } from "@/lib/content/summarizer";
 import { generateQuizQuestions } from "@/lib/content/quiz-generator";
 import { fetchArticleText } from "@/lib/content/article-fetcher";
 import { istToday } from "@/lib/utils/date";
+import { getPublishQualityIssues } from "@/lib/content/quality";
 
 const parser = new Parser();
 
@@ -526,6 +529,9 @@ export interface PipelineResult {
   relevant: number;
   generated?: number;
   questions?: number;
+  autoPublish?: boolean;
+  autoPublished?: number;
+  autoPublishSkipped?: number;
   errors?: string[];
   items?: Array<Record<string, unknown>>;
   error?: string;
@@ -534,9 +540,11 @@ export interface PipelineResult {
 export async function runIngestPipeline(options: {
   limit?: number;
   dryRun?: boolean;
+  autoPublish?: boolean;
 }): Promise<PipelineResult> {
   const limit = Math.min(options.limit ?? 12, 12);
   const dryRun = options.dryRun ?? false;
+  const autoPublish = options.autoPublish === true && !dryRun;
 
   if (!dryRun && !process.env.ANTHROPIC_API_KEY) {
     throw Object.assign(
@@ -627,6 +635,8 @@ export async function runIngestPipeline(options: {
     // 3. Generate via Claude — persist each item immediately so a Vercel
     //    function timeout mid-loop still preserves completed items.
     let savedCount = 0;
+    let approvedCount = 0;
+    let skippedAutoPublishCount = 0;
     const errors: string[] = [];
 
     for (const feedItem of relevant) {
@@ -695,8 +705,37 @@ export async function runIngestPipeline(options: {
         if (itemQuestions.length > 0) await upsertQuestions(itemQuestions);
         savedCount++;
 
+        if (autoPublish) {
+          const issues = getPublishQualityIssues(newItem, itemQuestions);
+          if (issues.length === 0) {
+            const approvedQuestions = itemQuestions.map((q) => ({
+              ...q,
+              status: "approved" as const,
+            }));
+            if (approvedQuestions.length > 0) await upsertQuestions(approvedQuestions);
+
+            const published = await updateContentStatus(
+              itemId,
+              "published",
+              `${newItem.review_notes ?? ""} | Auto-published by daily cron`
+            );
+            if (published) {
+              await assignDailySlot(published);
+              approvedCount++;
+            }
+          } else {
+            skippedAutoPublishCount++;
+            errors.push(
+              `Auto-publish skipped for "${feedItem.title}": ${issues.join(" ")}`
+            );
+          }
+        }
+
         // Keep the run counter current so the dashboard reflects partial progress
-        await updatePipelineRun(runId, { items_generated: savedCount });
+        await updatePipelineRun(runId, {
+          items_generated: savedCount,
+          items_approved: approvedCount,
+        });
       } catch (err) {
         errors.push(
           `Failed to process "${feedItem.title}": ${err instanceof Error ? err.message : String(err)}`
@@ -709,15 +748,19 @@ export async function runIngestPipeline(options: {
     await updatePipelineRun(runId, {
       status: savedCount === 0 && runErrorLog ? "failed" : "completed",
       items_generated: savedCount,
+      items_approved: approvedCount,
       error_log: runErrorLog,
     });
 
     return {
       runId,
       dryRun: false,
+      autoPublish,
       totalFetched: allItems.length,
       relevant: relevant.length,
       generated: savedCount,
+      autoPublished: approvedCount,
+      autoPublishSkipped: skippedAutoPublishCount,
       questions: 0, // counted per-item above; not tracked in aggregate return
       errors,
     };

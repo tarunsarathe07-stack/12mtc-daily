@@ -7,6 +7,7 @@
  * Query params:
  *   ?limit=N   — max items to process (default 12, capped at 12)
  *   ?dryRun=1  — RSS discovery + scoring only, no Claude calls
+ *   ?autoPublish=1 — publish quality-passing generated cards immediately
  */
 
 import { runIngestPipeline } from "@/lib/content/pipeline";
@@ -23,9 +24,10 @@ export async function POST(request: Request) {
   const url = new URL(request.url);
   const limit = Number(url.searchParams.get("limit") || "12");
   const dryRun = url.searchParams.get("dryRun") === "1";
+  const autoPublish = url.searchParams.get("autoPublish") === "1";
 
   try {
-    const result = await runIngestPipeline({ limit, dryRun });
+    const result = await runIngestPipeline({ limit, dryRun, autoPublish });
     return Response.json(result);
   } catch (err) {
     const status =

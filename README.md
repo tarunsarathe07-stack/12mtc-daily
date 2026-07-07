@@ -34,3 +34,24 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Daily content automation
+
+The app has a Vercel cron configured in `vercel.json`:
+
+```json
+{
+  "path": "/api/cron/daily-ingest",
+  "schedule": "30 0 * * *"
+}
+```
+
+That runs at 00:30 UTC, which is 6:00 AM IST. By default, the cron fetches and generates up to 12 CLAT current-affairs cards into the review queue.
+
+To publish cards automatically after generation, set:
+
+```bash
+AUTO_PUBLISH_DAILY_INGEST=true
+```
+
+Auto-publish still uses the existing quality gate. Cards that are missing citations, CLAT relevance notes, syllabus category notes, or quiz questions stay in review instead of going live.

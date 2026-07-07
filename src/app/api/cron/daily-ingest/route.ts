@@ -7,8 +7,8 @@
  *     automatically when the CRON_SECRET env var exists)
  *   - Manual/external schedulers: `x-admin-key: ADMIN_DEV_KEY`
  *
- * Generates up to 12 items into the REVIEW queue. Nothing auto-publishes —
- * an admin approves the day's 12 in /admin/content.
+ * Generates up to 12 items. By default they land in REVIEW. Set
+ * AUTO_PUBLISH_DAILY_INGEST=true to publish quality-passing cards directly.
  */
 
 import { runIngestPipeline } from "@/lib/content/pipeline";
@@ -35,7 +35,8 @@ export async function GET(request: Request) {
   }
 
   try {
-    const result = await runIngestPipeline({ limit: 12, dryRun: false });
+    const autoPublish = process.env.AUTO_PUBLISH_DAILY_INGEST === "true";
+    const result = await runIngestPipeline({ limit: 12, dryRun: false, autoPublish });
     return Response.json({ trigger: "cron", ...result });
   } catch (err) {
     return Response.json(
