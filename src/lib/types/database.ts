@@ -195,7 +195,8 @@ export interface BattleAnswer {
 
 export interface BattleResult {
   id: string;
-  battle_room_id: string;
+  battle_room_id: string | null;
+  quiz_session_id?: string | null;
   user_id: string | null;
   is_bot: boolean;
   bot_profile_name: string | null;

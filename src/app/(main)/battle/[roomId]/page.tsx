@@ -63,6 +63,7 @@ export default function BattleRoomPage() {
   const [totals, setTotals] = useState({ player: 0, bot: 0 });
   const [rail, setRail] = useState<RailState[]>([]);
   const [finishing, setFinishing] = useState(false);
+  const [battleError, setBattleError] = useState<string | null>(null);
   const questionStart = useRef(Date.now());
   const submitting = useRef(false);
 
@@ -87,6 +88,7 @@ export default function BattleRoomPage() {
     async (option: string | null) => {
       if (!session || reveal || submitting.current) return;
       submitting.current = true;
+      setBattleError(null);
       if (option) setLocked(option);
       const timeMs = Date.now() - questionStart.current;
 
@@ -118,9 +120,13 @@ export default function BattleRoomPage() {
           } else {
             setCombo(0);
           }
+        } else {
+          setLocked(null);
+          setBattleError(data?.error || "Your answer could not be scored. Please try again.");
         }
       } catch {
         setLocked(null);
+        setBattleError("The scoring service could not be reached. Please try again.");
       } finally {
         submitting.current = false;
       }
@@ -164,13 +170,14 @@ export default function BattleRoomPage() {
       return;
     }
     setFinishing(true);
+    setBattleError(null);
     try {
       const res = await fetch("/api/battle/complete", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ sessionId: session.sessionId }),
       });
-      const summary = await res.json();
+      const summary = await res.json().catch(() => null);
       if (res.ok) {
         summary.bestCombo = bestCombo;
         sessionStorage.setItem(`tmd-result-${session.sessionId}`, JSON.stringify(summary));
@@ -178,8 +185,9 @@ export default function BattleRoomPage() {
         router.push(`/battle/${session.sessionId}/results`);
         return;
       }
+      setBattleError(summary?.error || "Your result could not be calculated. Please try again.");
     } catch {
-      // fall through
+      setBattleError("The result service could not be reached. Please try again.");
     }
     setFinishing(false);
   }, [session, idx, total, bestCombo, router]);
@@ -490,6 +498,11 @@ export default function BattleRoomPage() {
                 </motion.div>
               )}
             </AnimatePresence>
+            {battleError && (
+              <p className="mt-3 rounded-lg border border-coral/25 bg-coral/10 px-3 py-2 text-center text-xs font-semibold text-coral">
+                {battleError}
+              </p>
+            )}
           </motion.div>
         </AnimatePresence>
       </main>

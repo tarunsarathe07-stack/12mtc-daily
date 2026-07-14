@@ -99,36 +99,48 @@ export async function POST(request: Request) {
     await applyMasteryDeltas(userId, perTopic);
 
     // ── Persist results + close session ──
+    // Result/event rows are secondary records. A ledger or analytics write
+    // must never prevent a student from receiving a score that was already
+    // calculated and applied to their profile.
+    const secondaryWrites = await Promise.allSettled([
+      recordBattleResult({
+        id: randomUUID(),
+        battle_room_id: null,
+        quiz_session_id: sessionId,
+        user_id: userId,
+        is_bot: false,
+        bot_profile_name: session.bot_profile.name,
+        total_score: playerScore,
+        correct_count: correct,
+        wrong_count: wrong,
+        skipped_count: skipped,
+        avg_time_ms: Math.round(playerAvgMs),
+        rating_change: ratingChange,
+        xp_earned: xpEarned,
+        is_winner: won,
+        created_at: new Date().toISOString(),
+      }),
+      recordEvent({
+        id: randomUUID(),
+        user_id: userId,
+        event_type: "battle_complete",
+        cta_label: null,
+        meta: { sessionId, won, playerScore, botScore },
+        path: "/battle",
+        created_at: new Date().toISOString(),
+      }),
+    ]);
+    for (const write of secondaryWrites) {
+      if (write.status === "rejected") {
+        console.error("Battle completion secondary write failed", write.reason);
+      }
+    }
+
     await updateQuizSession(sessionId, {
       status: "completed",
       player_score: playerScore,
       bot_score: botScore,
       completed_at: new Date().toISOString(),
-    });
-    await recordBattleResult({
-      id: randomUUID(),
-      battle_room_id: sessionId,
-      user_id: userId,
-      is_bot: false,
-      bot_profile_name: session.bot_profile.name,
-      total_score: playerScore,
-      correct_count: correct,
-      wrong_count: wrong,
-      skipped_count: skipped,
-      avg_time_ms: Math.round(playerAvgMs),
-      rating_change: ratingChange,
-      xp_earned: xpEarned,
-      is_winner: won,
-      created_at: new Date().toISOString(),
-    });
-    await recordEvent({
-      id: randomUUID(),
-      user_id: userId,
-      event_type: "battle_complete",
-      cta_label: null,
-      meta: { sessionId, won, playerScore, botScore },
-      path: "/battle",
-      created_at: new Date().toISOString(),
     });
 
     // ── Weak topics (overall, after this battle) ──
