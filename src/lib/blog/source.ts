@@ -11,7 +11,7 @@
  */
 
 import type { BlogPost } from "@/lib/types/database";
-import { useSupabaseStore } from "@/lib/content/config";
+import { shouldUseSupabaseStore } from "@/lib/content/config";
 import { SEED_BLOG_POSTS } from "./posts-seed";
 
 export interface BlogSource {
@@ -51,5 +51,5 @@ class SupabaseBlogSource implements BlogSource {
 }
 
 export function getBlogSource(): BlogSource {
-  return useSupabaseStore() ? new SupabaseBlogSource() : new LocalBlogSource();
+  return shouldUseSupabaseStore() ? new SupabaseBlogSource() : new LocalBlogSource();
 }

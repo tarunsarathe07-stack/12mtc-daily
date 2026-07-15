@@ -9,7 +9,7 @@
  * import from here — never from store.ts / supabase-store.ts directly.
  */
 
-import { useSupabaseStore, DAILY_TARGET } from "./config";
+import { shouldUseSupabaseStore, DAILY_TARGET } from "./config";
 import * as local from "./store";
 import * as supa from "./supabase-store";
 import type { ContentItem, Question, TopicTag } from "@/lib/types/database";
@@ -19,31 +19,31 @@ import { istToday } from "@/lib/utils/date";
 // ── Content items ──────────────────────────────────
 
 export async function getAllContentItems(): Promise<ContentItem[]> {
-  return useSupabaseStore() ? supa.getAllContentItems() : local.getAllContentItems();
+  return shouldUseSupabaseStore() ? supa.getAllContentItems() : local.getAllContentItems();
 }
 
 export async function getContentItemsByStatus(status: string): Promise<ContentItem[]> {
-  return useSupabaseStore()
+  return shouldUseSupabaseStore()
     ? supa.getContentItemsByStatus(status)
     : local.getContentItemsByStatus(status);
 }
 
 export async function getPublishedContentItems(): Promise<ContentItem[]> {
-  return useSupabaseStore()
+  return shouldUseSupabaseStore()
     ? supa.getPublishedContentItems()
     : local.getPublishedContentItems();
 }
 
 export async function getContentItemById(id: string): Promise<ContentItem | undefined> {
-  return useSupabaseStore() ? supa.getContentItemById(id) : local.getContentItemById(id);
+  return shouldUseSupabaseStore() ? supa.getContentItemById(id) : local.getContentItemById(id);
 }
 
 export async function getContentItemBySlug(slug: string): Promise<ContentItem | undefined> {
-  return useSupabaseStore() ? supa.getContentItemBySlug(slug) : local.getContentItemBySlug(slug);
+  return shouldUseSupabaseStore() ? supa.getContentItemBySlug(slug) : local.getContentItemBySlug(slug);
 }
 
 export async function upsertContentItems(items: ContentItem[]): Promise<void> {
-  return useSupabaseStore() ? supa.upsertContentItems(items) : local.upsertContentItems(items);
+  return shouldUseSupabaseStore() ? supa.upsertContentItems(items) : local.upsertContentItems(items);
 }
 
 export async function updateContentStatus(
@@ -51,13 +51,13 @@ export async function updateContentStatus(
   status: ContentItem["status"],
   reviewNotes?: string
 ): Promise<ContentItem | null> {
-  return useSupabaseStore()
+  return shouldUseSupabaseStore()
     ? supa.updateContentStatus(id, status, reviewNotes)
     : local.updateContentStatus(id, status, reviewNotes);
 }
 
 export async function isUrlIngested(url: string): Promise<boolean> {
-  return useSupabaseStore() ? supa.isUrlIngested(url) : local.isUrlIngested(url);
+  return shouldUseSupabaseStore() ? supa.isUrlIngested(url) : local.isUrlIngested(url);
 }
 
 // ── Daily slot assignment (1-12 per IST news day) ──
@@ -84,7 +84,7 @@ export async function assignDailySlot(item: ContentItem): Promise<number | null>
   }
 
   const updated: ContentItem = { ...item, content_date: date, daily_slot: slot };
-  if (useSupabaseStore()) {
+  if (shouldUseSupabaseStore()) {
     await supa.upsertContentItems([updated]);
   } else {
     local.upsertContentItem(updated);
@@ -95,31 +95,31 @@ export async function assignDailySlot(item: ContentItem): Promise<number | null>
 // ── Questions ──────────────────────────────────────
 
 export async function getAllQuestions(): Promise<Question[]> {
-  return useSupabaseStore() ? supa.getAllQuestions() : local.getAllQuestions();
+  return shouldUseSupabaseStore() ? supa.getAllQuestions() : local.getAllQuestions();
 }
 
 export async function getQuestionsForContentItem(contentItemId: string): Promise<Question[]> {
-  return useSupabaseStore()
+  return shouldUseSupabaseStore()
     ? supa.getQuestionsForContentItem(contentItemId)
     : local.getQuestionsForContentItem(contentItemId);
 }
 
 export async function upsertQuestions(questions: Question[]): Promise<void> {
-  return useSupabaseStore() ? supa.upsertQuestions(questions) : local.upsertQuestions(questions);
+  return shouldUseSupabaseStore() ? supa.upsertQuestions(questions) : local.upsertQuestions(questions);
 }
 
 // ── Pipeline runs ──────────────────────────────────
 
 export async function addPipelineRun(run: PipelineRun): Promise<void> {
-  return useSupabaseStore() ? supa.addPipelineRun(run) : local.addPipelineRun(run);
+  return shouldUseSupabaseStore() ? supa.addPipelineRun(run) : local.addPipelineRun(run);
 }
 
 export async function updatePipelineRun(id: string, updates: Partial<PipelineRun>): Promise<void> {
-  return useSupabaseStore() ? supa.updatePipelineRun(id, updates) : local.updatePipelineRun(id, updates);
+  return shouldUseSupabaseStore() ? supa.updatePipelineRun(id, updates) : local.updatePipelineRun(id, updates);
 }
 
 export async function getPipelineRuns(): Promise<PipelineRun[]> {
-  return useSupabaseStore() ? supa.getPipelineRuns() : local.getPipelineRuns();
+  return shouldUseSupabaseStore() ? supa.getPipelineRuns() : local.getPipelineRuns();
 }
 
 const PIPELINE_STALE_AFTER_MS = 30 * 60 * 1000;
@@ -204,7 +204,7 @@ export async function getDailyStatus(date?: string): Promise<DailyStatus> {
 
   // Dev/mock mode: students see mock + pipeline merged, so the admin
   // status must reflect the same merged view (clearly demo data).
-  if (!useSupabaseStore()) {
+  if (!shouldUseSupabaseStore()) {
     const { MOCK_CONTENT, MOCK_QUESTIONS } = await import("@/lib/mock-data");
     const ids = new Set(all.map((i) => i.id));
     all = [...all, ...MOCK_CONTENT.filter((i) => !ids.has(i.id))];

@@ -20,28 +20,44 @@ import {
   addQuizAnswer,
 } from "@/lib/student/data";
 import { calculatePoints, isCorrect } from "@/lib/battle/scoring";
+import { checkRateLimit, rateLimitResponse } from "@/lib/security/rate-limit";
+import { readJson, routeErrorResponse, sameOriginError } from "@/lib/security/request";
 
 export const runtime = "nodejs";
 
 const MAX_TIME_MS = 15000;
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export async function POST(request: Request) {
+  const originError = sameOriginError(request);
+  if (originError) return originError;
+
   const userId = await getStudentId();
   if (!userId) {
     return Response.json({ error: "Not signed in" }, { status: 401 });
   }
 
+  const limited = rateLimitResponse(
+    await checkRateLimit(request, {
+      bucket: "battle-answer",
+      limit: 120,
+      windowSeconds: 60,
+      userId,
+    })
+  );
+  if (limited) return limited;
+
   try {
-    const body = (await request.json()) as {
+    const body = await readJson<{
       sessionId?: string;
       questionIndex?: number;
       selectedOption?: string | null;
       timeMs?: number;
-    };
+    }>(request, 4096);
 
     const { sessionId } = body;
     const questionIndex = Number(body.questionIndex);
-    if (!sessionId || !Number.isInteger(questionIndex) || questionIndex < 0) {
+    if (!sessionId || !UUID_PATTERN.test(sessionId) || !Number.isInteger(questionIndex) || questionIndex < 0) {
       return Response.json({ error: "sessionId and questionIndex required" }, { status: 400 });
     }
 
@@ -110,9 +126,12 @@ export async function POST(request: Request) {
       answered: answers.length,
       totalQuestions: session.questions.length,
     });
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Failed to submit answer";
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
     const status = message.includes("already answered") || message.includes("duplicate") ? 409 : 500;
-    return Response.json({ error: message }, { status });
+    if (status === 409) {
+      return Response.json({ error: "Question already answered" }, { status });
+    }
+    return routeErrorResponse(error, "Failed to submit answer", "Battle answer submission failed");
   }
 }

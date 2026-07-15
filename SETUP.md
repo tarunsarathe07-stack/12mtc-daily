@@ -50,8 +50,8 @@ NEXT_PUBLIC_SUPABASE_URL=https://<ref>.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon key>
 SUPABASE_SERVICE_ROLE_KEY=<service_role key>
 
-# Admin bootstrap + cron auth — generate with: openssl rand -hex 32
-ADMIN_DEV_KEY=<long random string>
+# Vercel Cron auth — generate with: openssl rand -hex 32
+CRON_SECRET=<long random string>
 
 # Claude API for the content pipeline (console.anthropic.com)
 ANTHROPIC_API_KEY=sk-ant-...
@@ -64,41 +64,32 @@ NEXT_PUBLIC_APP_URL=https://your-domain.com
 ## 4. Create the first admin
 
 1. Sign up normally in the app (`/signup`) with your email and confirm it.
-2. Assign yourself the admin role (requires `ADMIN_DEV_KEY`; there is no
-   public self-escalation path):
+2. Assign yourself the admin role once from the Supabase SQL editor. Replace
+   the email before running this statement:
 
-```bash
-curl -X POST https://your-domain.com/api/admin/bootstrap \
-  -H "x-admin-key: $ADMIN_DEV_KEY" \
-  -H "content-type: application/json" \
-  -d '{"email":"you@example.com","role":"admin"}'
+```sql
+insert into public.user_roles (user_id, role)
+select id, 'admin'
+from auth.users
+where lower(email) = lower('you@example.com')
+on conflict (user_id, role) do nothing;
 ```
 
 3. Log out and back in → `/admin` is now accessible.
-   (Alternative: insert into `user_roles` directly in the SQL editor.)
 
-Grant additional reviewers the `editor` role the same way.
+Grant additional reviewers the `editor` role with the same SQL statement.
 
 ## 5. Run the pipeline
 
-```bash
-# Dry run — RSS discovery + CLAT relevance scoring only, no Claude calls
-curl -X POST "https://your-domain.com/api/content/ingest?dryRun=1" \
-  -H "x-admin-key: $ADMIN_DEV_KEY"
-
-# Full ingest — generates up to 12 items (shorts + explainer + 3-5 MCQs each)
-curl -X POST "https://your-domain.com/api/content/ingest?limit=12" \
-  -H "x-admin-key: $ADMIN_DEV_KEY"
-```
-
-Or click **Dry Run** / **Run Full Pipeline** in `/admin` while logged in as admin.
+Click **Dry Run** / **Run Full Pipeline** in `/admin` while logged in as an
+admin or editor. Pipeline APIs do not accept shared-key authentication.
 
 Then review in `/admin/content`: **Approve & Publish** assigns the next free
 `daily_slot` (1-12) for today's IST date. Nothing auto-publishes — generated
 content sits in `review` until an admin acts.
 
-**Daily automation:** add a Vercel Cron hitting the ingest URL (with the
-`x-admin-key` header) at ~6:00 IST, then approve the day's 12 in the morning.
+**Daily automation:** `vercel.json` invokes `/api/cron/daily-ingest` at 6:00 AM
+IST. Vercel sends `Authorization: Bearer $CRON_SECRET` automatically.
 
 ## 6. Verify
 

@@ -15,15 +15,27 @@ import {
 import { getAllPublishedContent, getContentDate } from "@/lib/content/unified";
 import { istToday } from "@/lib/utils/date";
 import { DAILY_TARGET } from "@/lib/content/config";
+import { routeErrorResponse } from "@/lib/security/request";
+import { checkRateLimit, rateLimitResponse } from "@/lib/security/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request: Request) {
   const userId = await getStudentId();
   if (!userId) {
     return Response.json({ error: "Not signed in" }, { status: 401 });
   }
+
+  const limited = rateLimitResponse(
+    await checkRateLimit(request, {
+      bucket: "progress-today",
+      limit: 120,
+      windowSeconds: 60,
+      userId,
+    })
+  );
+  if (limited) return limited;
 
   try {
     const [profile, readIds, bookmarks, mastery, published, activeDates] = await Promise.all([
@@ -58,10 +70,7 @@ export async function GET() {
       weakTopics,
       activeDates,
     });
-  } catch (err) {
-    return Response.json(
-      { error: err instanceof Error ? err.message : "Failed to load progress" },
-      { status: 500 }
-    );
+  } catch (error) {
+    return routeErrorResponse(error, "Failed to load progress", "Progress read failed");
   }
 }

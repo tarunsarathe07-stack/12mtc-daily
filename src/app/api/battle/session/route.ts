@@ -18,6 +18,8 @@ import { getStudentId, getProfile, createQuizSession } from "@/lib/student/data"
 import { getDailyQuestionsDetailed, getQuestionsByTopic } from "@/lib/content/unified";
 import { selectBotProfile, generateBotAnswer } from "@/lib/battle/bot";
 import type { QuizSession } from "@/lib/types/database";
+import { checkRateLimit, rateLimitResponse } from "@/lib/security/rate-limit";
+import { readJson, routeErrorResponse, sameOriginError } from "@/lib/security/request";
 
 export const runtime = "nodejs";
 
@@ -25,18 +27,43 @@ const QUESTIONS_PER_ROUND = 12;
 const TIME_PER_QUESTION_SEC = 15;
 
 export async function POST(request: Request) {
+  const originError = sameOriginError(request);
+  if (originError) return originError;
+
   const userId = await getStudentId();
   if (!userId) {
     return Response.json({ error: "Not signed in" }, { status: 401 });
   }
 
+  const limited = rateLimitResponse(
+    await checkRateLimit(request, {
+      bucket: "battle-session",
+      limit: 10,
+      windowSeconds: 3600,
+      userId,
+    })
+  );
+  if (limited) return limited;
+
   try {
-    const body = (await request.json().catch(() => ({}))) as {
+    const body = await readJson<{
       mode?: string;
       topic?: string;
-    };
+    }>(request, 2048);
     const mode = body.mode === "topic" ? "topic" : "daily";
-    const topic = mode === "topic" ? (body.topic ?? null) : null;
+    const topic = mode === "topic" ? body.topic?.trim().toLowerCase() ?? null : null;
+    const validTopics = new Set([
+      "legal",
+      "polity",
+      "international",
+      "economy",
+      "environment",
+      "awards",
+      "reports",
+    ]);
+    if (mode === "topic" && (!topic || !validTopics.has(topic))) {
+      return Response.json({ error: "A valid topic is required" }, { status: 400 });
+    }
 
     // 1. Server picks the questions
     const questions =
@@ -95,10 +122,7 @@ export async function POST(request: Request) {
         difficulty: q.difficulty,
       })),
     });
-  } catch (err) {
-    return Response.json(
-      { error: err instanceof Error ? err.message : "Failed to start battle" },
-      { status: 500 }
-    );
+  } catch (error) {
+    return routeErrorResponse(error, "Failed to start battle", "Battle session creation failed");
   }
 }

@@ -16,6 +16,7 @@ import {
   upsertQuestions,
 } from "@/lib/content/data";
 import { istToday } from "@/lib/utils/date";
+import { readJson, routeErrorResponse } from "@/lib/security/request";
 import type { ContentItem, Question, TopicTag } from "@/lib/types/database";
 
 export const runtime = "nodejs";
@@ -62,11 +63,11 @@ export async function POST(request: Request) {
   }
 
   try {
-    const body = await request.json();
-    const title = typeof body.title === "string" ? body.title.trim() : "";
-    const source = typeof body.source === "string" ? body.source.trim() : "Editorial desk";
-    const url = typeof body.url === "string" ? body.url.trim() : "";
-    const snippet = typeof body.snippet === "string" ? body.snippet.trim() : "";
+    const body = await readJson<Record<string, unknown>>(request, 32_768);
+    const title = typeof body.title === "string" ? body.title.trim().slice(0, 300) : "";
+    const source = typeof body.source === "string" ? body.source.trim().slice(0, 120) : "Editorial desk";
+    const url = typeof body.url === "string" ? body.url.trim().slice(0, 2000) : "";
+    const snippet = typeof body.snippet === "string" ? body.snippet.trim().slice(0, 20_000) : "";
     const contentDate = typeof body.content_date === "string" ? body.content_date : istToday();
     const requestedTopics = Array.isArray(body.topics)
       ? body.topics.filter((topic: string) => VALID_TOPICS.includes(topic as TopicTag)).slice(0, 2)
@@ -74,6 +75,17 @@ export async function POST(request: Request) {
 
     if (!title) {
       return Response.json({ error: "title is required" }, { status: 400 });
+    }
+    if (url) {
+      try {
+        const parsed = new URL(url);
+        if (!["http:", "https:"].includes(parsed.protocol)) throw new Error("invalid protocol");
+      } catch {
+        return Response.json({ error: "url must be a valid HTTP(S) URL" }, { status: 400 });
+      }
+    }
+    if (!/^20\d{2}-\d{2}-\d{2}$/.test(contentDate)) {
+      return Response.json({ error: "content_date must be YYYY-MM-DD" }, { status: 400 });
     }
 
     if (url && (await isUrlIngested(url))) {
@@ -163,10 +175,7 @@ export async function POST(request: Request) {
       },
       questions: questions.length,
     });
-  } catch (err) {
-    return Response.json(
-      { error: err instanceof Error ? err.message : "Manual candidate failed" },
-      { status: 500 }
-    );
+  } catch (error) {
+    return routeErrorResponse(error, "Manual candidate failed", "Manual candidate generation failed");
   }
 }

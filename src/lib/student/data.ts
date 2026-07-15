@@ -10,7 +10,7 @@
  * never from the request body.
  */
 
-import { useSupabaseStore } from "@/lib/content/config";
+import { shouldUseSupabaseStore } from "@/lib/content/config";
 import { istToday } from "@/lib/utils/date";
 import { XP_AWARDS } from "@/lib/gamification/xp";
 import { isStreakQualified, calculateNewStreak } from "@/lib/gamification/streaks";
@@ -27,13 +27,14 @@ import type {
   DailyUserActivity,
 } from "@/lib/types/database";
 import { randomUUID } from "crypto";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 // ── Identity ───────────────────────────────────────
 
 /** Resolve the acting student. Mock mode: fixed demo user. Production:
  *  the authenticated Supabase user (null = not logged in). */
 export async function getStudentId(): Promise<string | null> {
-  if (!useSupabaseStore()) return MOCK_USER.id;
+  if (!shouldUseSupabaseStore()) return MOCK_USER.id;
   const { createClient } = await import("@/lib/supabase/server");
   const supabase = await createClient();
   const {
@@ -43,15 +44,13 @@ export async function getStudentId(): Promise<string | null> {
 }
 
 function admin() {
-  // Lazy import keeps supabase-js out of paths that never use it
-  const { createAdminClient } = require("@/lib/supabase/admin") as typeof import("@/lib/supabase/admin");
   return createAdminClient();
 }
 
 // ── Profile ────────────────────────────────────────
 
 export async function getProfile(userId: string): Promise<User | null> {
-  if (!useSupabaseStore()) {
+  if (!shouldUseSupabaseStore()) {
     return readOnly((d) => d.profiles.find((p) => p.id === userId) ?? null);
   }
   const { data, error } = await admin().from("users").select("*").eq("id", userId).maybeSingle();
@@ -60,7 +59,7 @@ export async function getProfile(userId: string): Promise<User | null> {
 }
 
 async function updateProfile(userId: string, updates: Partial<User>): Promise<void> {
-  if (!useSupabaseStore()) {
+  if (!shouldUseSupabaseStore()) {
     withStore((d) => {
       const p = d.profiles.find((x) => x.id === userId);
       if (p) Object.assign(p, updates, { updated_at: new Date().toISOString() });
@@ -81,7 +80,7 @@ export async function touchLastActive(userId: string): Promise<void> {
 // ── Daily activity + streak ────────────────────────
 
 async function getOrCreateActivity(userId: string, date: string): Promise<DailyUserActivity> {
-  if (!useSupabaseStore()) {
+  if (!shouldUseSupabaseStore()) {
     return withStore((d) => {
       let row = d.daily_activity.find((a) => a.user_id === userId && a.activity_date === date);
       if (!row) {
@@ -135,7 +134,7 @@ async function bumpActivity(
   };
   const qualified = isStreakQualified(next.battles_completed, next.shorts_read);
 
-  if (!useSupabaseStore()) {
+  if (!shouldUseSupabaseStore()) {
     withStore((d) => {
       const row = d.daily_activity.find((a) => a.user_id === userId && a.activity_date === date);
       if (row) Object.assign(row, next, { streak_qualified: qualified, updated_at: new Date().toISOString() });
@@ -192,7 +191,7 @@ export async function markShortRead(
   const date = istToday();
   let newlyRead = false;
 
-  if (!useSupabaseStore()) {
+  if (!shouldUseSupabaseStore()) {
     newlyRead = withStore((d) => {
       const exists = d.content_progress.some(
         (r) => r.user_id === userId && r.content_item_id === contentItemId
@@ -245,7 +244,7 @@ export async function markShortRead(
 }
 
 export async function getReadContentIds(userId: string): Promise<string[]> {
-  if (!useSupabaseStore()) {
+  if (!shouldUseSupabaseStore()) {
     return readOnly((d) =>
       d.content_progress.filter((r) => r.user_id === userId && r.read_short).map((r) => r.content_item_id)
     );
@@ -262,7 +261,7 @@ export async function getReadContentIds(userId: string): Promise<string[]> {
 // ── Bookmarks ──────────────────────────────────────
 
 export async function toggleBookmark(userId: string, contentItemId: string): Promise<boolean> {
-  if (!useSupabaseStore()) {
+  if (!shouldUseSupabaseStore()) {
     return withStore((d) => {
       const idx = d.bookmarks.findIndex(
         (b) => b.user_id === userId && b.content_item_id === contentItemId
@@ -291,7 +290,7 @@ export async function toggleBookmark(userId: string, contentItemId: string): Pro
 }
 
 export async function getBookmarkIds(userId: string): Promise<string[]> {
-  if (!useSupabaseStore()) {
+  if (!shouldUseSupabaseStore()) {
     return readOnly((d) =>
       d.bookmarks.filter((b) => b.user_id === userId).map((b) => b.content_item_id)
     );
@@ -307,7 +306,7 @@ export async function getBookmarkIds(userId: string): Promise<string[]> {
 // ── Topic mastery ──────────────────────────────────
 
 export async function getMastery(userId: string): Promise<UserTopicMastery[]> {
-  if (!useSupabaseStore()) {
+  if (!shouldUseSupabaseStore()) {
     return readOnly((d) => d.topic_mastery.filter((m) => m.user_id === userId));
   }
   const { data, error } = await admin().from("user_topic_mastery").select("*").eq("user_id", userId);
@@ -326,7 +325,7 @@ export async function applyMasteryDeltas(
     const correct = (row?.correct_count ?? 0) + delta.correct;
     const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
 
-    if (!useSupabaseStore()) {
+    if (!shouldUseSupabaseStore()) {
       withStore((d) => {
         const m = d.topic_mastery.find((x) => x.user_id === userId && x.topic === topic);
         if (m) {
@@ -368,7 +367,7 @@ export async function applyMasteryDeltas(
 // ── Quiz sessions (server-authoritative) ───────────
 
 export async function createQuizSession(session: QuizSession): Promise<void> {
-  if (!useSupabaseStore()) {
+  if (!shouldUseSupabaseStore()) {
     withStore((d) => d.quiz_sessions.push(session));
     return;
   }
@@ -377,7 +376,7 @@ export async function createQuizSession(session: QuizSession): Promise<void> {
 }
 
 export async function getQuizSession(id: string): Promise<QuizSession | null> {
-  if (!useSupabaseStore()) {
+  if (!shouldUseSupabaseStore()) {
     return readOnly((d) => d.quiz_sessions.find((s) => s.id === id) ?? null);
   }
   const { data, error } = await admin().from("quiz_sessions").select("*").eq("id", id).maybeSingle();
@@ -386,7 +385,7 @@ export async function getQuizSession(id: string): Promise<QuizSession | null> {
 }
 
 export async function updateQuizSession(id: string, updates: Partial<QuizSession>): Promise<void> {
-  if (!useSupabaseStore()) {
+  if (!shouldUseSupabaseStore()) {
     withStore((d) => {
       const s = d.quiz_sessions.find((x) => x.id === id);
       if (s) Object.assign(s, updates);
@@ -398,7 +397,7 @@ export async function updateQuizSession(id: string, updates: Partial<QuizSession
 }
 
 export async function addQuizAnswer(answer: QuizAnswer): Promise<void> {
-  if (!useSupabaseStore()) {
+  if (!shouldUseSupabaseStore()) {
     withStore((d) => {
       const dup = d.quiz_answers.some(
         (a) => a.session_id === answer.session_id && a.question_index === answer.question_index
@@ -413,7 +412,7 @@ export async function addQuizAnswer(answer: QuizAnswer): Promise<void> {
 }
 
 export async function getSessionAnswers(sessionId: string): Promise<QuizAnswer[]> {
-  if (!useSupabaseStore()) {
+  if (!shouldUseSupabaseStore()) {
     return readOnly((d) =>
       d.quiz_answers
         .filter((a) => a.session_id === sessionId)
@@ -429,10 +428,46 @@ export async function getSessionAnswers(sessionId: string): Promise<QuizAnswer[]
   return (data ?? []) as QuizAnswer[];
 }
 
+export interface BattleCompletionSummary {
+  winner: "player1" | "player2" | "draw";
+  won: boolean;
+  draw: boolean;
+  playerScore: number;
+  botScore: number;
+  correct: number;
+  wrong: number;
+  skipped: number;
+  accuracy: number;
+  playerAvgMs: number;
+  botAvgMs: number;
+  ratingBefore: number;
+  ratingChange: number;
+  newRating: number;
+  xpEarned: number;
+  newXp: number;
+  streak: number;
+}
+
+/** Production-only transactional battle completion RPC. */
+export async function completeQuizSessionAtomically(
+  sessionId: string,
+  userId: string
+): Promise<BattleCompletionSummary> {
+  if (!shouldUseSupabaseStore()) {
+    throw new Error("Atomic completion is unavailable in local mock mode");
+  }
+  const { data, error } = await admin().rpc("complete_quiz_session", {
+    p_session_id: sessionId,
+    p_user_id: userId,
+  });
+  if (error) throw error;
+  return data as BattleCompletionSummary;
+}
+
 // ── Battle completion side-effects ─────────────────
 
 export async function recordBattleResult(result: BattleResult): Promise<void> {
-  if (!useSupabaseStore()) {
+  if (!shouldUseSupabaseStore()) {
     withStore((d) => d.battle_results.push(result));
     return;
   }
@@ -479,7 +514,7 @@ export async function applyBattleCompletion(
 // ── Conversion events ──────────────────────────────
 
 export async function recordEvent(event: ConversionEvent): Promise<void> {
-  if (!useSupabaseStore()) {
+  if (!shouldUseSupabaseStore()) {
     withStore((d) => d.conversion_events.push(event));
     return;
   }
@@ -490,7 +525,7 @@ export async function recordEvent(event: ConversionEvent): Promise<void> {
 /** Dates (YYYY-MM-DD) where the student qualified for a streak — powers
  *  the streak calendar. */
 export async function getActiveDates(userId: string, limit = 60): Promise<string[]> {
-  if (!useSupabaseStore()) {
+  if (!shouldUseSupabaseStore()) {
     return readOnly((d) =>
       d.daily_activity
         .filter((a) => a.user_id === userId && a.streak_qualified)
@@ -512,7 +547,7 @@ export async function getActiveDates(userId: string, limit = 60): Promise<string
 
 /** Recent conversion events, newest first — admin funnel dashboard. */
 export async function getRecentEvents(limit = 200): Promise<ConversionEvent[]> {
-  if (!useSupabaseStore()) {
+  if (!shouldUseSupabaseStore()) {
     return readOnly((d) =>
       [...d.conversion_events]
         .sort((a, b) => b.created_at.localeCompare(a.created_at))

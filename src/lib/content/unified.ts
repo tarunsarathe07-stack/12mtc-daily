@@ -15,7 +15,7 @@ import {
   getPublishedContent as getMockPublished,
 } from "@/lib/mock-data";
 import * as data from "./data";
-import { useSupabaseStore, isMockMode, DAILY_TARGET } from "./config";
+import { shouldUseSupabaseStore, isMockMode, DAILY_TARGET } from "./config";
 import { istToday } from "@/lib/utils/date";
 import type { ContentItem, Question } from "@/lib/types/database";
 
@@ -40,7 +40,7 @@ export async function getAllPublishedContent(): Promise<ContentItem[]> {
   const pipelineItems = await pipelinePublished();
 
   // Production: Supabase only — mock data never leaks into real content.
-  if (useSupabaseStore()) return pipelineItems;
+  if (shouldUseSupabaseStore()) return pipelineItems;
 
   // Dev/mock: real pipeline content REPLACES demo cards day-by-day.
   // A day that has any published pipeline items shows only those;
@@ -88,7 +88,7 @@ export async function getContentBySlug(slug: string): Promise<ContentItem | unde
   } catch {
     // fall through to mock
   }
-  if (useSupabaseStore()) return undefined;
+  if (shouldUseSupabaseStore()) return undefined;
   return MOCK_CONTENT.find((c) => c.slug === slug && c.status === "published");
 }
 
@@ -102,7 +102,7 @@ export async function getQuestionsForContent(contentId: string): Promise<Questio
   } catch {
     // fall through
   }
-  if (useSupabaseStore()) return [];
+  if (shouldUseSupabaseStore()) return [];
   return MOCK_QUESTIONS.filter((q) => q.content_item_id === contentId);
 }
 
@@ -114,7 +114,7 @@ export async function getAllApprovedQuestions(): Promise<Question[]> {
   } catch {
     // store unavailable
   }
-  if (useSupabaseStore()) return storeQs;
+  if (shouldUseSupabaseStore()) return storeQs;
 
   const mockQs = isMockMode() ? MOCK_QUESTIONS.filter((q) => q.status === "approved") : [];
   const idSet = new Set(storeQs.map((q) => q.id));

@@ -2,29 +2,23 @@
  * Admin authorization for pipeline mutation routes and admin pages.
  *
  * Production (Supabase configured, mock mode off):
- *   - Logged-in user must have role 'admin' or 'editor' in user_roles, OR
- *   - the request carries an `x-admin-key` header matching ADMIN_DEV_KEY
- *     (for cron/CI triggers).
+ *   - Logged-in user must have role 'admin' or 'editor' in user_roles.
  *
- * Development (mock mode / placeholder credentials):
- *   - If ADMIN_DEV_KEY is set, the `x-admin-key` header must match.
- *   - If unset, access is allowed (local demo) — flagged in the response
- *     so it's never mistaken for real protection.
+ * Development (explicit mock mode): access is allowed and flagged as
+ * dev-open so it is never mistaken for production protection.
  */
 
 import { isSupabaseConfigured, isMockMode } from "@/lib/content/config";
+import { checkRateLimit } from "@/lib/security/rate-limit";
+import { sameOriginError } from "@/lib/security/request";
 
 export type AdminCheck =
-  | { ok: true; via: "supabase-role" | "admin-key" | "dev-open"; userId?: string }
+  | { ok: true; via: "supabase-role" | "dev-open"; userId?: string }
   | { ok: false; status: number; error: string };
 
 export async function requireAdmin(request: Request): Promise<AdminCheck> {
-  const headerKey = request.headers.get("x-admin-key");
-  const devKey = process.env.ADMIN_DEV_KEY;
-
-  // Shared-key path (cron jobs, CI, curl) — valid in any mode when configured
-  if (devKey && headerKey && headerKey === devKey) {
-    return { ok: true, via: "admin-key" };
+  if (!["GET", "HEAD"].includes(request.method) && sameOriginError(request)) {
+    return { ok: false, status: 403, error: "Cross-origin request rejected" };
   }
 
   // Production path: Supabase session + role check
@@ -48,18 +42,23 @@ export async function requireAdmin(request: Request): Promise<AdminCheck> {
       if (!isAdminOrEditor) {
         return { ok: false, status: 403, error: "Admin or editor role required" };
       }
+
+      const rateLimit = await checkRateLimit(request, {
+        bucket: `admin-${request.method.toLowerCase()}`,
+        limit: request.method === "GET" ? 300 : 30,
+        windowSeconds: 600,
+        userId: user.id,
+      });
+      if (!rateLimit.allowed) {
+        return { ok: false, status: 429, error: "Too many admin requests" };
+      }
       return { ok: true, via: "supabase-role", userId: user.id };
     } catch {
       return { ok: false, status: 500, error: "Auth check failed" };
     }
   }
 
-  // Dev mode with a key set: enforce it
-  if (devKey) {
-    return { ok: false, status: 401, error: "Missing or invalid x-admin-key header" };
-  }
-
-  // Pure local demo (mock mode, no key): allow, but say so
+  // Explicit local demo mode only.
   if (isMockMode()) {
     return { ok: true, via: "dev-open" };
   }
@@ -70,7 +69,7 @@ export async function requireAdmin(request: Request): Promise<AdminCheck> {
     ok: false,
     status: 503,
     error:
-      "Admin actions unavailable: server is not configured. Set Supabase credentials (and run migrations) or set ADMIN_DEV_KEY.",
+      "Admin actions unavailable: server is not configured.",
   };
 }
 

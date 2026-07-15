@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -14,12 +13,9 @@ export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [examYear, setExamYear] = useState<string>("2027");
-  const [phone, setPhone] = useState("");
-  const [city, setCity] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const router = useRouter();
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
@@ -34,8 +30,6 @@ export default function SignupPage() {
         data: {
           display_name: name,
           target_exam_year: examYear,
-          phone: phone || "",
-          city: city || "",
         },
       },
     });
@@ -105,6 +99,8 @@ export default function SignupPage() {
               onChange={(e) => setName(e.target.value)}
               placeholder="Your name"
               required
+              maxLength={80}
+              autoComplete="name"
               className="flex h-10 w-full rounded-lg border border-input bg-background px-3 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
             />
           </div>
@@ -119,6 +115,7 @@ export default function SignupPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
               required
+              autoComplete="email"
               className="flex h-10 w-full rounded-lg border border-input bg-background px-3 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
             />
           </div>
@@ -131,9 +128,11 @@ export default function SignupPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="At least 6 characters"
+              placeholder="At least 10 characters"
               required
-              minLength={6}
+              minLength={10}
+              maxLength={128}
+              autoComplete="new-password"
               className="flex h-10 w-full rounded-lg border border-input bg-background px-3 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
             />
           </div>
@@ -154,40 +153,18 @@ export default function SignupPage() {
               ))}
             </select>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <label htmlFor="phone" className="text-sm font-medium">
-                Phone <span className="text-muted-foreground">(optional)</span>
-              </label>
-              <input
-                id="phone"
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="98765 43210"
-                className="flex h-10 w-full rounded-lg border border-input bg-background px-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-              />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="city" className="text-sm font-medium">
-                City <span className="text-muted-foreground">(optional)</span>
-              </label>
-              <input
-                id="city"
-                type="text"
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                placeholder="Indore"
-                className="flex h-10 w-full rounded-lg border border-input bg-background px-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-              />
-            </div>
-          </div>
-
           {error && <p className="text-sm text-destructive">{error}</p>}
 
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Creating account..." : "Create Account"}
           </Button>
+          <p className="text-center text-xs leading-5 text-muted-foreground">
+            By creating an account, you acknowledge our{" "}
+            <Link href="/privacy" className="font-semibold text-primary hover:underline">
+              privacy notice
+            </Link>
+            .
+          </p>
         </form>
 
         <div className="relative">

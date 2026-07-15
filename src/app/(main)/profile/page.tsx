@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { Flame, Trophy, Zap, Swords, Target, Phone, GraduationCap } from "lucide-react";
+import { Flame, Trophy, Zap, Swords, Target, Phone, GraduationCap, Trash2 } from "lucide-react";
 import { MOCK_USER, MOCK_MASTERY } from "@/lib/mock-data";
 import { LEAGUE_CONFIG } from "@/lib/types/database";
 import { getNextLeagueThreshold } from "@/lib/gamification/leagues";
@@ -18,6 +18,27 @@ import { tmcLink, CTA_LABELS } from "@/lib/funnel/links";
 export default function ProfilePage() {
   const [user, setUser] = useState(MOCK_USER);
   const [activeDates, setActiveDates] = useState<string[]>([]);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  async function deleteAccount() {
+    if (!window.confirm("Permanently delete your account and all saved progress?")) return;
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      const response = await fetch("/api/account/delete", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ confirmation: "DELETE" }),
+      });
+      const result = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(result?.error || "Account deletion failed");
+      window.location.assign("/");
+    } catch (error) {
+      setDeleteError(error instanceof Error ? error.message : "Account deletion failed");
+      setDeleting(false);
+    }
+  }
 
   // Live profile (server-persisted XP/rating/streak)
   useEffect(() => {
@@ -341,6 +362,19 @@ export default function ProfilePage() {
           >
             Read CLAT guides on the blog →
           </Link>
+        </section>
+
+        <section className="border-t border-border pt-6">
+          <button
+            type="button"
+            onClick={deleteAccount}
+            disabled={deleting}
+            className="inline-flex items-center gap-2 text-sm font-semibold text-destructive hover:underline disabled:opacity-60"
+          >
+            <Trash2 className="h-4 w-4" />
+            {deleting ? "Deleting account..." : "Delete account"}
+          </button>
+          {deleteError && <p className="mt-2 text-xs text-destructive">{deleteError}</p>}
         </section>
 
         <div className="h-20" /> {/* Bottom nav clearance */}

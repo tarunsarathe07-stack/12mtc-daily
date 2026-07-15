@@ -153,6 +153,11 @@ export default async function LandingPage() {
           </section>
         )}
       </main>
+      <footer className="border-t border-border/70 px-4 py-6 text-center text-xs text-muted-foreground">
+        <Link href="/privacy" className="font-semibold hover:text-foreground hover:underline">
+          Privacy
+        </Link>
+      </footer>
     </div>
   );
 }

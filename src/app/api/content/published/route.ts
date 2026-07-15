@@ -27,19 +27,28 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const date = url.searchParams.get("date");
   const grouped = url.searchParams.get("grouped") === "1";
+  if (date && !/^20\d{2}-\d{2}-\d{2}$/.test(date)) {
+    return Response.json({ error: "date must be YYYY-MM-DD" }, { status: 400 });
+  }
 
   if (grouped) {
-    return Response.json({ groups: await getContentGroupedByDate() });
+    return Response.json(
+      { groups: await getContentGroupedByDate() },
+      { headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" } }
+    );
   }
 
   const items = date
     ? await getContentForDate(date)
     : await getAllPublishedContent();
 
-  return Response.json({
-    items: items.map((item) => ({
-      ...item,
-      content_date: getContentDate(item),
-    })),
-  });
+  return Response.json(
+    {
+      items: items.map((item) => ({
+        ...item,
+        content_date: getContentDate(item),
+      })),
+    },
+    { headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" } }
+  );
 }

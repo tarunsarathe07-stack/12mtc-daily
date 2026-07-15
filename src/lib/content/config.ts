@@ -27,7 +27,7 @@ export function isMockMode(): boolean {
 }
 
 /** True when reads/writes should go to Supabase (production path). */
-export function useSupabaseStore(): boolean {
+export function shouldUseSupabaseStore(): boolean {
   return isSupabaseConfigured() && !isMockMode();
 }
 

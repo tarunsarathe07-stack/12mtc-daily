@@ -10,6 +10,8 @@ import { randomUUID } from "crypto";
 import { getStudentId, recordEvent, getRecentEvents } from "@/lib/student/data";
 import { requireAdmin, adminDenied } from "@/lib/auth/admin-guard";
 import type { ConversionEventType } from "@/lib/types/database";
+import { checkRateLimit, rateLimitResponse } from "@/lib/security/rate-limit";
+import { readJson, routeErrorResponse, sameOriginError } from "@/lib/security/request";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -36,13 +38,25 @@ const VALID_TYPES: ConversionEventType[] = [
 ];
 
 export async function POST(request: Request) {
+  const originError = sameOriginError(request);
+  if (originError) return originError;
+
+  const limited = rateLimitResponse(
+    await checkRateLimit(request, {
+      bucket: "conversion-event",
+      limit: 30,
+      windowSeconds: 60,
+    })
+  );
+  if (limited) return limited;
+
   try {
-    const body = (await request.json()) as {
+    const body = await readJson<{
       eventType?: ConversionEventType;
       ctaLabel?: string;
       meta?: Record<string, unknown>;
       path?: string;
-    };
+    }>(request, 4096);
 
     if (!body.eventType || !VALID_TYPES.includes(body.eventType)) {
       return Response.json({ error: "Invalid eventType" }, { status: 400 });
@@ -55,16 +69,26 @@ export async function POST(request: Request) {
       user_id: userId,
       event_type: body.eventType,
       cta_label: body.ctaLabel?.slice(0, 120) ?? null,
-      meta: body.meta ?? {},
+      meta: sanitizeMeta(body.meta),
       path: body.path?.slice(0, 200) ?? null,
       created_at: new Date().toISOString(),
     });
 
     return Response.json({ ok: true });
-  } catch (err) {
-    return Response.json(
-      { error: err instanceof Error ? err.message : "Failed to record event" },
-      { status: 500 }
-    );
+  } catch (error) {
+    return routeErrorResponse(error, "Failed to record event", "Conversion event write failed");
   }
+}
+
+function sanitizeMeta(meta: Record<string, unknown> | undefined): Record<string, string | number | boolean | null> {
+  if (!meta || typeof meta !== "object" || Array.isArray(meta)) return {};
+  const safe: Record<string, string | number | boolean | null> = {};
+  for (const [key, value] of Object.entries(meta).slice(0, 10)) {
+    const safeKey = key.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 40);
+    if (!safeKey) continue;
+    if (typeof value === "string") safe[safeKey] = value.slice(0, 200);
+    else if (typeof value === "number" && Number.isFinite(value)) safe[safeKey] = value;
+    else if (typeof value === "boolean" || value === null) safe[safeKey] = value;
+  }
+  return safe;
 }

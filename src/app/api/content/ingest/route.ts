@@ -30,12 +30,13 @@ export async function POST(request: Request) {
     const result = await runIngestPipeline({ limit, dryRun, autoPublish });
     return Response.json(result);
   } catch (err) {
+    console.error("Content pipeline failed", err);
     const status =
       err && typeof err === "object" && "statusCode" in err
         ? (err.statusCode as number)
         : 500;
     return Response.json(
-      { error: err instanceof Error ? err.message : "Pipeline failed" },
+      { error: "Pipeline failed. Check server logs for details." },
       { status }
     );
   }

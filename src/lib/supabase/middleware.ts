@@ -33,6 +33,7 @@ export async function updateSession(request: NextRequest) {
     pathname === "/" ||
     pathname === "/robots.txt" ||
     pathname === "/sitemap.xml" ||
+    pathname === "/privacy" ||
     pathname.startsWith("/blog") || // landing + funnel blog are public
     pathname.startsWith("/auth"); // OAuth/email-confirm callback
 

@@ -22,6 +22,7 @@ import {
 } from "@/lib/content/data";
 import { getPublishQualityIssues } from "@/lib/content/quality";
 import { requireAdmin, adminDenied } from "@/lib/auth/admin-guard";
+import { readJson, routeErrorResponse } from "@/lib/security/request";
 
 export const runtime = "nodejs";
 
@@ -30,12 +31,11 @@ export async function POST(request: Request) {
   if (!auth.ok) return adminDenied(auth);
 
   try {
-    const body = await request.json();
-    const { id, action, notes } = body as {
+    const { id, action, notes } = await readJson<{
       id: string;
       action: "approve" | "publish" | "reject";
       notes?: string;
-    };
+    }>(request, 8192);
 
     if (!id || !action) {
       return Response.json(
@@ -75,7 +75,7 @@ export async function POST(request: Request) {
       }
     }
 
-    let updated = await updateContentStatus(id, newStatus, notes);
+    let updated = await updateContentStatus(id, newStatus, notes?.slice(0, 2000));
 
     // Publishing → claim a slot in that day's edition of 12
     let dailySlot: number | null = null;
@@ -109,10 +109,7 @@ export async function POST(request: Request) {
           }
         : null,
     });
-  } catch (err) {
-    return Response.json(
-      { error: err instanceof Error ? err.message : "Failed to update" },
-      { status: 500 }
-    );
+  } catch (error) {
+    return routeErrorResponse(error, "Failed to update content", "Content approval failed");
   }
 }
