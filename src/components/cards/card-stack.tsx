@@ -21,11 +21,12 @@ export function CardStack({ items, onActiveCard, bookmarkedIds, onBookmark }: Ca
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0);
 
-  useEffect(() => { setCurrentIndex(0); setDirection(0); }, [items]);
+  const safeIndex = Math.min(currentIndex, Math.max(items.length - 1, 0));
+
   useEffect(() => {
-    const item = items[Math.min(currentIndex, items.length - 1)];
-    if (item) onActiveCard?.(item, Math.min(currentIndex, items.length - 1));
-  }, [currentIndex, items, onActiveCard]);
+    const item = items[safeIndex];
+    if (item) onActiveCard?.(item, safeIndex);
+  }, [items, onActiveCard, safeIndex]);
 
   const goNext = useCallback(() => {
     if (currentIndex < items.length - 1) { setDirection(1); setCurrentIndex((i) => i + 1); }
@@ -54,8 +55,8 @@ export function CardStack({ items, onActiveCard, bookmarkedIds, onBookmark }: Ca
     return <div className="flex h-[calc(100dvh-8rem)] items-center justify-center px-4 text-muted-foreground">No cards available yet.</div>;
   }
 
-  const currentItem = items[currentIndex];
-  const progress = ((currentIndex + 1) / items.length) * 100;
+  const currentItem = items[safeIndex];
+  const progress = ((safeIndex + 1) / items.length) * 100;
 
   return (
     <div className="relative mx-auto grid min-h-[calc(100dvh-6rem)] w-full max-w-6xl grid-rows-[auto_minmax(0,1fr)_auto] px-4 py-3 sm:px-6 lg:px-8">
@@ -64,7 +65,7 @@ export function CardStack({ items, onActiveCard, bookmarkedIds, onBookmark }: Ca
         <div className="min-w-[160px] text-center">
           <p className="text-[10px] font-black uppercase tracking-[0.16em] text-muted-foreground">Daily shorts</p>
           <div className="mx-auto mt-1 h-1 w-24 overflow-hidden rounded-full bg-primary/10"><div className="h-full rounded-full bg-saffron transition-all" style={{ width: `${progress}%` }} /></div>
-          <p className="mt-1 text-[10px] font-black text-[#8a5200]">{currentIndex + 1}/{items.length}</p>
+          <p className="mt-1 text-[10px] font-black text-[#8a5200]">{safeIndex + 1}/{items.length}</p>
         </div>
         <button onClick={onBookmark ? () => onBookmark(currentItem) : undefined} aria-label="Bookmark current card" className="rounded-full p-2 text-foreground transition hover:bg-white">
           <Bookmark className={cn("h-5 w-5", bookmarkedIds?.includes(currentItem.id) && "fill-current text-primary")} />
@@ -93,8 +94,8 @@ export function CardStack({ items, onActiveCard, bookmarkedIds, onBookmark }: Ca
       </div>
 
       <footer className="mx-auto mt-5 flex w-full max-w-[690px] items-center justify-between gap-3 pb-3">
-        <button onClick={goPrev} disabled={currentIndex === 0} className="stitch-pill inline-flex h-12 w-12 items-center justify-center text-primary disabled:opacity-35" aria-label="Previous card"><ChevronLeft className="h-5 w-5" /></button>
-        {currentIndex === items.length - 1 ? (
+        <button onClick={goPrev} disabled={safeIndex === 0} className="stitch-pill inline-flex h-12 w-12 items-center justify-center text-primary disabled:opacity-35" aria-label="Previous card"><ChevronLeft className="h-5 w-5" /></button>
+        {safeIndex === items.length - 1 ? (
           <Link href="/battle/queue?mode=daily" className="flex-1 inline-flex h-12 items-center justify-center gap-2 rounded-full bg-saffron px-5 text-sm font-black text-ink shadow-xl shadow-saffron/20 transition hover:-translate-y-0.5"><Swords className="h-4 w-4" /> Quiz</Link>
         ) : (
           <button onClick={goNext} className="flex-1 inline-flex h-12 items-center justify-center gap-2 rounded-full bg-saffron px-5 text-sm font-black text-ink shadow-xl shadow-saffron/20 transition hover:-translate-y-0.5">Read next <ChevronRight className="h-4 w-4" /></button>

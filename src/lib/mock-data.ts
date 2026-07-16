@@ -7,12 +7,7 @@ import type {
   ContentItem,
   Question,
   User,
-  BattleRoom,
-  BattleResult,
-  BotProfile,
   UserTopicMastery,
-  DailyUserActivity,
-  TopicTag,
 } from "@/lib/types/database";
 
 // ============================================================

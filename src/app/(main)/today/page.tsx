@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight, Bookmark, BookOpen, Radio, Swords, Target, Zap } from "lucide-react";
 import { TopBar } from "@/components/layout/top-bar";
 import { getPublishedContent, MOCK_MASTERY, MOCK_USER } from "@/lib/mock-data";
@@ -49,7 +50,7 @@ export default function TodayPage() {
   const [progressLoaded, setProgressLoaded] = useState(false);
 
   useEffect(() => {
-    fetch("/api/content/published", { cache: "no-store" })
+    fetch(`/api/content/published?date=${istToday()}`, { cache: "no-store" })
       .then((r) => r.json())
       .then((data) => { if (Array.isArray(data.items)) setAllContent(data.items); })
       .catch(() => {});
@@ -184,7 +185,17 @@ export default function TodayPage() {
                 {visibleQueue.slice(0, 3).map((item) => (
                   <Link key={item.id} href={`/daily/${item.slug}`} className="group grid grid-cols-[76px_1fr] gap-4 rounded-2xl p-1.5 transition hover:bg-muted/60">
                     <div className="h-20 overflow-hidden rounded-2xl bg-primary/10">
-                      {item.image_url ? <img src={item.image_url} alt="" className="h-full w-full object-cover" loading="lazy" /> : <div className="flex h-full w-full items-center justify-center bg-[linear-gradient(135deg,#ececf8,#fff0d3)]"><BookOpen className="h-6 w-6 text-primary" /></div>}
+                      {item.image_url ? (
+                        <Image
+                          src={item.image_url}
+                          alt=""
+                          width={76}
+                          height={80}
+                          sizes="76px"
+                          className="h-full w-full object-cover"
+                          unoptimized
+                        />
+                      ) : <div className="flex h-full w-full items-center justify-center bg-[linear-gradient(135deg,#ececf8,#fff0d3)]"><BookOpen className="h-6 w-6 text-primary" /></div>}
                     </div>
                     <div className="min-w-0 py-1">
                       <p className="text-[11px] font-black uppercase tracking-[0.12em] text-primary">{sourceName(item)} <span className="text-muted-foreground">· {item.is_demo ? "Demo" : "Reviewed"}</span></p>

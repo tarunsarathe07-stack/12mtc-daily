@@ -21,11 +21,15 @@ interface PipelineRun {
 export default function AdminPipelinePage() {
   const [runs, setRuns] = useState<PipelineRun[]>([]);
   const [loading, setLoading] = useState(true);
+  const [staleFixed, setStaleFixed] = useState(0);
 
   useEffect(() => {
     fetch("/api/content/runs", { cache: "no-store" })
       .then((r) => r.json())
-      .then((data) => setRuns(data.runs || []))
+      .then((data) => {
+        setRuns(data.runs || []);
+        setStaleFixed(typeof data.staleFixed === "number" ? data.staleFixed : 0);
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
@@ -50,6 +54,11 @@ export default function AdminPipelinePage() {
       </header>
 
       <div className="mx-auto max-w-5xl p-6 space-y-3">
+        {staleFixed > 0 && (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            Recovered {staleFixed} timed-out pipeline run{staleFixed === 1 ? "" : "s"} and marked them failed.
+          </div>
+        )}
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />

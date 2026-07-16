@@ -60,6 +60,27 @@ export function getPublishedContentItems(): ContentItem[] {
   return getContentItemsByStatus("published");
 }
 
+export function getPublishedContentByDate(date: string): ContentItem[] {
+  return getPublishedContentItems()
+    .filter((item) => item.content_date === date)
+    .sort((a, b) => (a.daily_slot ?? 99) - (b.daily_slot ?? 99));
+}
+
+export function getPublishedContentPage(
+  offset: number,
+  limit: number
+): { items: ContentItem[]; total: number } {
+  const published = getPublishedContentItems().sort(
+    (a, b) =>
+      (b.content_date ?? "").localeCompare(a.content_date ?? "") ||
+      (a.daily_slot ?? 99) - (b.daily_slot ?? 99)
+  );
+  return {
+    items: published.slice(offset, offset + limit),
+    total: published.length,
+  };
+}
+
 export function getContentItemBySlug(slug: string): ContentItem | undefined {
   return readStore().content_items.find((c) => c.slug === slug);
 }
@@ -175,8 +196,24 @@ export function updatePipelineRun(id: string, updates: Partial<PipelineRun>): vo
   }
 }
 
-export function getPipelineRuns(): PipelineRun[] {
-  return readStore().pipeline_runs;
+export function getPipelineRuns(limit = 50): PipelineRun[] {
+  return readStore()
+    .pipeline_runs
+    .sort((a, b) => b.created_at.localeCompare(a.created_at))
+    .slice(0, limit);
+}
+
+export function markStalePipelineRuns(cutoff: string, message: string): number {
+  const store = readStore();
+  let updated = 0;
+  for (const run of store.pipeline_runs) {
+    if (run.status !== "running" || run.created_at >= cutoff) continue;
+    run.status = "failed";
+    run.error_log = run.error_log ? `${run.error_log}\n${message}` : message;
+    updated++;
+  }
+  if (updated > 0) writeStore(store);
+  return updated;
 }
 
 // ── Stats ──────────────────────────────────────────

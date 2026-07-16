@@ -13,5 +13,5 @@ export async function GET(request: Request) {
   if (!auth.ok) return adminDenied(auth);
 
   const { runs, staleFixed } = await getPipelineRunsWithStaleCleanup();
-  return Response.json({ authVia: auth.via, staleFixed, runs: [...runs].reverse() });
+  return Response.json({ authVia: auth.via, staleFixed, runs });
 }

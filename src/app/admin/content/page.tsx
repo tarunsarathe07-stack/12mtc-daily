@@ -109,7 +109,7 @@ export default function AdminContentPage() {
       const res = await fetch(`/api/content/list${param}`, { cache: "no-store" });
       const data = await res.json();
       setItems(data.items || []);
-      setStats(data.stats || stats);
+      if (data.stats) setStats(data.stats);
     } catch {
       // ignore
     } finally {
@@ -118,9 +118,23 @@ export default function AdminContentPage() {
   }, [filter]);
 
   useEffect(() => {
-    setLoading(true);
-    loadItems();
-  }, [loadItems]);
+    let active = true;
+    const param = filter === "all" ? "" : `?status=${filter}`;
+    fetch(`/api/content/list${param}`, { cache: "no-store" })
+      .then((res) => res.json())
+      .then((data) => {
+        if (!active) return;
+        setItems(data.items || []);
+        if (data.stats) setStats(data.stats);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [filter]);
 
   const handleAction = async (
     id: string,

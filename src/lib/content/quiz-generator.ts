@@ -3,7 +3,7 @@
  */
 
 import Anthropic from "@anthropic-ai/sdk";
-import type { Question, QuestionOption, TopicTag } from "@/lib/types/database";
+import type { QuestionOption, TopicTag } from "@/lib/types/database";
 
 const DEFAULT_MODEL = "claude-haiku-4-5-20251001";
 

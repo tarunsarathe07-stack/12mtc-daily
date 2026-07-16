@@ -4,7 +4,7 @@
  */
 
 import { getStudentId, toggleBookmark } from "@/lib/student/data";
-import { getAllPublishedContent } from "@/lib/content/unified";
+import { getPublishedContentById } from "@/lib/content/unified";
 import { checkRateLimit, rateLimitResponse } from "@/lib/security/rate-limit";
 import { readJson, routeErrorResponse, sameOriginError } from "@/lib/security/request";
 
@@ -34,8 +34,7 @@ export async function POST(request: Request) {
     if (!contentItemId || contentItemId.length > 100) {
       return Response.json({ error: "contentItemId required" }, { status: 400 });
     }
-    const published = await getAllPublishedContent();
-    if (!published.some((item) => item.id === contentItemId)) {
+    if (!(await getPublishedContentById(contentItemId))) {
       return Response.json({ error: "Unknown content item" }, { status: 404 });
     }
     const bookmarked = await toggleBookmark(userId, contentItemId);

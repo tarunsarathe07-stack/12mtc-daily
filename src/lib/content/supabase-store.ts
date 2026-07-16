@@ -41,6 +41,25 @@ export async function getPublishedContentItems(): Promise<ContentItem[]> {
   return getContentItemsByStatus("published");
 }
 
+export async function getPublishedContentPage(
+  offset: number,
+  limit: number
+): Promise<{ items: ContentItem[]; total: number }> {
+  const supabase = createAdminClient();
+  const { data, error, count } = await supabase
+    .from("content_items")
+    .select("*", { count: "exact" })
+    .eq("status", "published")
+    .order("content_date", { ascending: false })
+    .order("daily_slot", { ascending: true })
+    .range(offset, offset + limit - 1);
+  if (error) throw error;
+  return {
+    items: (data ?? []) as ContentItem[],
+    total: count ?? 0,
+  };
+}
+
 export async function getPublishedContentByDate(date: string): Promise<ContentItem[]> {
   const supabase = createAdminClient();
   const { data, error } = await supabase
@@ -171,14 +190,30 @@ export async function updatePipelineRun(
   if (error) throw error;
 }
 
-export async function getPipelineRuns(): Promise<PipelineRun[]> {
+export async function getPipelineRuns(limit = 50): Promise<PipelineRun[]> {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("content_pipeline_runs")
     .select("*")
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(limit);
   if (error) throw error;
   return (data ?? []) as PipelineRun[];
+}
+
+export async function markStalePipelineRuns(
+  cutoff: string,
+  message: string
+): Promise<number> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("content_pipeline_runs")
+    .update({ status: "failed", error_log: message })
+    .eq("status", "running")
+    .lt("created_at", cutoff)
+    .select("id");
+  if (error) throw error;
+  return data?.length ?? 0;
 }
 
 // ── Blog posts (funnel content — separate from current affairs) ──

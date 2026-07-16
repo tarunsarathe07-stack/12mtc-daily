@@ -12,7 +12,7 @@ import {
   getMastery,
   getActiveDates,
 } from "@/lib/student/data";
-import { getAllPublishedContent, getContentDate } from "@/lib/content/unified";
+import { getContentForDate } from "@/lib/content/unified";
 import { istToday } from "@/lib/utils/date";
 import { DAILY_TARGET } from "@/lib/content/config";
 import { routeErrorResponse } from "@/lib/security/request";
@@ -43,12 +43,12 @@ export async function GET(request: Request) {
       getReadContentIds(userId),
       getBookmarkIds(userId),
       getMastery(userId),
-      getAllPublishedContent(),
+      getContentForDate(istToday()),
       getActiveDates(userId),
     ]);
 
     const today = istToday();
-    const todayItems = published.filter((i) => getContentDate(i) === today);
+    const todayItems = published;
     const readToday = todayItems.filter((i) => readIds.includes(i.id)).length;
 
     const weakTopics = [...mastery]

@@ -18,6 +18,16 @@ assert(home.headers.get("x-content-type-options") === "nosniff", "nosniff header
 assert(home.headers.get("x-frame-options") === "DENY", "frame protection missing");
 assert(!home.headers.has("x-powered-by"), "Framework disclosure header is present");
 
+const forgotPassword = await fetch(`${baseUrl}/forgot-password`, { redirect: "manual" });
+assert(forgotPassword.status === 200, "Password reset request page is not public");
+
+const resetPassword = await fetch(`${baseUrl}/reset-password`, { redirect: "manual" });
+assert([307, 308].includes(resetPassword.status), "Password update page is not session protected");
+assert(
+  new URL(resetPassword.headers.get("location"), baseUrl).pathname === "/login",
+  "Password update page did not redirect anonymous users to login"
+);
+
 const removedQuestions = await fetch(`${baseUrl}/api/content/questions?count=1`);
 assert(removedQuestions.status === 404, "Public answer-key endpoint still exists");
 

@@ -30,7 +30,7 @@ export function RitualPreview() {
   return (
     <section className="stitch-card-strong overflow-hidden rounded-[2rem]">
       <div className="grid border-b border-border/70 bg-[#fbf8f1] sm:grid-cols-4">
-        {STAGES.map((item, i) => (
+        {STAGES.map((item) => (
           <button key={item.id} onClick={() => { setStage(item.id); setPaused(true); }} className={cn("group relative flex items-center justify-center gap-2 px-4 py-4 text-sm font-black text-muted-foreground", item.id === stage && "text-primary")}>
             <span>{item.label}</span>
             <span className={cn("absolute bottom-0 left-0 h-1 w-full origin-left scale-x-0 bg-saffron transition-transform", item.id === stage && "scale-x-100")} />

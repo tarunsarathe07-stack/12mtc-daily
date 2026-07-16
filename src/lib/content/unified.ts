@@ -54,8 +54,25 @@ export async function getAllPublishedContent(): Promise<ContentItem[]> {
   return [...pipelineItems, ...fillerMock];
 }
 
+export async function getPublishedContentPage(
+  page: number,
+  limit: number
+): Promise<{ items: ContentItem[]; total: number }> {
+  if (shouldUseSupabaseStore()) {
+    return data.getPublishedContentPage((page - 1) * limit, limit);
+  }
+
+  const items = (await getAllPublishedContent()).sort(
+    (a, b) =>
+      getContentDate(b).localeCompare(getContentDate(a)) ||
+      (a.daily_slot ?? 99) - (b.daily_slot ?? 99)
+  );
+  const offset = (page - 1) * limit;
+  return { items: items.slice(offset, offset + limit), total: items.length };
+}
+
 /** Published content grouped by news day, newest day first. */
-export async function getContentGroupedByDate(): Promise<
+export async function getContentGroupedByDate(limit?: number): Promise<
   Array<{ date: string; items: ContentItem[] }>
 > {
   const groups = new Map<string, ContentItem[]>();
@@ -65,19 +82,35 @@ export async function getContentGroupedByDate(): Promise<
     list.push(item);
     groups.set(date, list);
   }
-  return [...groups.entries()]
+  const grouped = [...groups.entries()]
     .sort(([a], [b]) => b.localeCompare(a))
     .map(([date, items]) => ({
       date,
       items: items.sort((a, b) => (a.daily_slot ?? 99) - (b.daily_slot ?? 99)),
     }));
+  return typeof limit === "number" ? grouped.slice(0, limit) : grouped;
 }
 
 /** Published content for one news day (archive read — by content_date). */
 export async function getContentForDate(date: string): Promise<ContentItem[]> {
+  if (shouldUseSupabaseStore()) return data.getPublishedContentByDate(date);
   return (await getAllPublishedContent())
     .filter((i) => getContentDate(i) === date)
     .sort((a, b) => (a.daily_slot ?? 99) - (b.daily_slot ?? 99));
+}
+
+/** Look up one published item by id without loading the archive. */
+export async function getPublishedContentById(
+  id: string
+): Promise<ContentItem | undefined> {
+  try {
+    const item = await data.getContentItemById(id);
+    if (item?.status === "published") return item;
+  } catch {
+    // fall through to mock
+  }
+  if (shouldUseSupabaseStore()) return undefined;
+  return MOCK_CONTENT.find((item) => item.id === id && item.status === "published");
 }
 
 /** Look up a single published item by slug from the active source. */
@@ -145,10 +178,8 @@ export async function getDailyQuestionsDetailed(
   // Resolve which content items belong to today
   let todayItemIds = new Set<string>();
   try {
-    const published = await getAllPublishedContent();
-    todayItemIds = new Set(
-      published.filter((i) => getContentDate(i) === today).map((i) => i.id)
-    );
+    const published = await getContentForDate(today);
+    todayItemIds = new Set(published.map((i) => i.id));
   } catch {
     // no published content available
   }

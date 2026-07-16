@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Bookmark, CalendarDays, ChevronDown, ChevronRight, Share2, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -35,7 +36,14 @@ export function ShortCard({ item, className, bookmarked, onBookmark }: ShortCard
     <article className={cn("stitch-card-strong flex h-full flex-col overflow-hidden rounded-[2.1rem] bg-white", className)}>
       <div className="stitch-image-mask relative h-[18dvh] min-h-[130px] max-h-[190px] shrink-0 bg-primary/8">
         {item.image_url ? (
-          <img src={item.image_url} alt="" className="h-full w-full object-cover" loading="lazy" />
+          <Image
+            src={item.image_url}
+            alt={item.title}
+            fill
+            sizes="(max-width: 768px) 100vw, 690px"
+            className="object-cover"
+            unoptimized
+          />
         ) : (
           <TopicArt topic={primaryTopic} slot={item.daily_slot} className="h-full rounded-none" />
         )}

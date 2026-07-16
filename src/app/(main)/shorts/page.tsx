@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Swords, Bookmark, Search, X } from "lucide-react";
 import { TopBar } from "@/components/layout/top-bar";
 import { CardStack } from "@/components/cards/card-stack";
@@ -29,11 +30,26 @@ const MAX_DATE_CHIPS = 5;
 const SHOW_LOCAL_DEMO = process.env.NEXT_PUBLIC_MOCK_MODE === "true";
 
 export default function ShortsPage() {
+  return (
+    <Suspense fallback={<ShortsPageFallback />}>
+      <ShortsPageContent />
+    </Suspense>
+  );
+}
+
+function ShortsPageContent() {
+  const searchParams = useSearchParams();
+  const requestedDay = searchParams.get("day");
   const [items, setItems] = useState<ContentItem[]>(() =>
     SHOW_LOCAL_DEMO ? getPublishedContent() : []
   );
   const [itemsLoading, setItemsLoading] = useState(!SHOW_LOCAL_DEMO);
-  const [filter, setFilter] = useState<Filter>(istToday());
+  const [filter, setFilter] = useState<Filter>(() => {
+    if (requestedDay === "today" || !requestedDay) return istToday();
+    if (requestedDay === "yesterday") return istDaysAgo(1);
+    if (requestedDay === "saved" || requestedDay === "all") return requestedDay;
+    return /^\d{4}-\d{2}-\d{2}$/.test(requestedDay) ? requestedDay : istToday();
+  });
   const [query, setQuery] = useState("");
   const [onLastCard, setOnLastCard] = useState(false);
   const [streak, setStreak] = useState(MOCK_USER.streak_current);
@@ -41,20 +57,10 @@ export default function ShortsPage() {
   const readSent = useRef(new Set<string>());
   const completionLogged = useRef(false);
 
-  // Deep link: /shorts?day=...
-  useEffect(() => {
-    const day = new URLSearchParams(window.location.search).get("day");
-    if (!day) return;
-    if (day === "today") setFilter(istToday());
-    else if (day === "yesterday") setFilter(istDaysAgo(1));
-    else if (day === "saved" || day === "all") setFilter(day);
-    else if (/^\d{4}-\d{2}-\d{2}$/.test(day)) setFilter(day);
-  }, []);
-
   // Unified published list. Production shows only Supabase-published content;
   // local mock mode may use demo cards so the interaction can be previewed.
   useEffect(() => {
-    fetch("/api/content/published", { cache: "no-store" })
+    fetch("/api/content/published?all=1", { cache: "no-store" })
       .then((r) => r.json())
       .then((data) => {
         if (Array.isArray(data.items)) setItems(data.items);
@@ -251,6 +257,7 @@ export default function ShortsPage() {
         </div>
       ) : filtered.length > 0 ? (
         <CardStack
+          key={`${filter}:${query}`}
           items={filtered}
           onActiveCard={handleActiveCard}
           bookmarkedIds={bookmarkIds}
@@ -283,6 +290,25 @@ export default function ShortsPage() {
           </Link>
         </div>
       )}
+    </>
+  );
+}
+
+function ShortsPageFallback() {
+  return (
+    <>
+      <TopBar title="News" />
+      <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <div className="mb-4 h-10 w-full max-w-md animate-pulse rounded-xl bg-muted" />
+        <div className="mb-5 flex gap-2">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <span key={index} className="h-7 w-24 animate-pulse rounded-full bg-muted" />
+          ))}
+        </div>
+        <div className="mx-auto max-w-[690px]">
+          <CardSkeleton />
+        </div>
+      </div>
     </>
   );
 }

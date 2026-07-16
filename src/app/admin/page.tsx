@@ -99,7 +99,20 @@ export default function AdminPage() {
   };
 
   useEffect(() => {
-    loadStats();
+    let active = true;
+    Promise.all([
+      fetch("/api/content/list", { cache: "no-store" }).then((res) => res.json()),
+      fetch("/api/content/daily-status", { cache: "no-store" }).then((res) => res.json()),
+    ])
+      .then(([content, dailyStatus]) => {
+        if (!active) return;
+        setStats(content.stats);
+        setDaily(dailyStatus);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
   }, []);
 
   const runPipeline = async (dryRun: boolean) => {
@@ -113,7 +126,7 @@ export default function AdminPage() {
       const data = await res.json();
       setResult(data);
       if (!dryRun) loadStats();
-    } catch (err) {
+    } catch {
       setResult({ error: "Pipeline request failed" });
     } finally {
       setRunning(false);

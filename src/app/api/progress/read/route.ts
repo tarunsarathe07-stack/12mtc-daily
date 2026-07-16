@@ -8,7 +8,7 @@
  */
 
 import { getStudentId, markShortRead } from "@/lib/student/data";
-import { getAllPublishedContent, getContentDate } from "@/lib/content/unified";
+import { getContentForDate, getPublishedContentById } from "@/lib/content/unified";
 import { istToday } from "@/lib/utils/date";
 import { checkRateLimit, rateLimitResponse } from "@/lib/security/rate-limit";
 import { readJson, routeErrorResponse, sameOriginError } from "@/lib/security/request";
@@ -41,14 +41,13 @@ export async function POST(request: Request) {
     }
 
     // Only published content can be marked read
-    const published = await getAllPublishedContent();
-    const item = published.find((i) => i.id === contentItemId);
+    const item = await getPublishedContentById(contentItemId);
     if (!item) {
       return Response.json({ error: "Unknown content item" }, { status: 404 });
     }
 
     const today = istToday();
-    const todayIds = published.filter((i) => getContentDate(i) === today).map((i) => i.id);
+    const todayIds = (await getContentForDate(today)).map((i) => i.id);
 
     const result = await markShortRead(userId, contentItemId, todayIds);
     return Response.json(result);

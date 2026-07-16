@@ -34,6 +34,21 @@ export async function getPublishedContentItems(): Promise<ContentItem[]> {
     : local.getPublishedContentItems();
 }
 
+export async function getPublishedContentByDate(date: string): Promise<ContentItem[]> {
+  return shouldUseSupabaseStore()
+    ? supa.getPublishedContentByDate(date)
+    : local.getPublishedContentByDate(date);
+}
+
+export async function getPublishedContentPage(
+  offset: number,
+  limit: number
+): Promise<{ items: ContentItem[]; total: number }> {
+  return shouldUseSupabaseStore()
+    ? supa.getPublishedContentPage(offset, limit)
+    : local.getPublishedContentPage(offset, limit);
+}
+
 export async function getContentItemById(id: string): Promise<ContentItem | undefined> {
   return shouldUseSupabaseStore() ? supa.getContentItemById(id) : local.getContentItemById(id);
 }
@@ -69,9 +84,7 @@ export async function isUrlIngested(url: string): Promise<boolean> {
  */
 export async function assignDailySlot(item: ContentItem): Promise<number | null> {
   const date = item.content_date ?? istToday();
-  const published = (await getPublishedContentItems()).filter(
-    (i) => (i.content_date ?? "") === date && i.id !== item.id
-  );
+  const published = (await getPublishedContentByDate(date)).filter((i) => i.id !== item.id);
   const used = new Set(
     published.map((i) => i.daily_slot).filter((s): s is number => typeof s === "number")
   );
@@ -118,44 +131,24 @@ export async function updatePipelineRun(id: string, updates: Partial<PipelineRun
   return shouldUseSupabaseStore() ? supa.updatePipelineRun(id, updates) : local.updatePipelineRun(id, updates);
 }
 
-export async function getPipelineRuns(): Promise<PipelineRun[]> {
-  return shouldUseSupabaseStore() ? supa.getPipelineRuns() : local.getPipelineRuns();
+export async function getPipelineRuns(limit = 50): Promise<PipelineRun[]> {
+  return shouldUseSupabaseStore() ? supa.getPipelineRuns(limit) : local.getPipelineRuns(limit);
 }
 
 const PIPELINE_STALE_AFTER_MS = 30 * 60 * 1000;
 const STALE_PIPELINE_MESSAGE =
   "Pipeline timed out before completion. Marked failed automatically after 30 minutes so the admin queue does not spin forever.";
 
-function isStalePipelineRun(run: PipelineRun, now = Date.now()): boolean {
-  if (run.status !== "running") return false;
-  const createdAt = Date.parse(run.created_at);
-  if (!Number.isFinite(createdAt)) return false;
-  return now - createdAt > PIPELINE_STALE_AFTER_MS;
-}
-
 export async function getPipelineRunsWithStaleCleanup(): Promise<{
   runs: PipelineRun[];
   staleFixed: number;
 }> {
-  const runs = await getPipelineRuns();
-  const stale = runs.filter((run) => isStalePipelineRun(run));
-  if (stale.length === 0) return { runs, staleFixed: 0 };
-
-  const results = await Promise.allSettled(
-    stale.map((run) =>
-      updatePipelineRun(run.id, {
-        status: "failed",
-        error_log: run.error_log
-          ? `${run.error_log}
-${STALE_PIPELINE_MESSAGE}`
-          : STALE_PIPELINE_MESSAGE,
-      })
-    )
-  );
-
-  const staleFixed = results.filter((result) => result.status === "fulfilled").length;
+  const cutoff = new Date(Date.now() - PIPELINE_STALE_AFTER_MS).toISOString();
+  const staleFixed = shouldUseSupabaseStore()
+    ? await supa.markStalePipelineRuns(cutoff, STALE_PIPELINE_MESSAGE)
+    : local.markStalePipelineRuns(cutoff, STALE_PIPELINE_MESSAGE);
   return {
-    runs: staleFixed > 0 ? await getPipelineRuns() : runs,
+    runs: await getPipelineRuns(),
     staleFixed,
   };
 }
