@@ -240,9 +240,9 @@ export default async function DailyExplainerPage({
         )}
       </article>
 
-      {/* Sticky next action — never a dead end */}
-      <div className="fixed inset-x-0 bottom-20 z-30 px-4 lg:bottom-6">
-        <div className="mx-auto flex w-full max-w-xl gap-2">
+      {/* In-flow sticky action: stays useful without covering study content. */}
+      <div className="sticky bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-30 px-4 pb-3 lg:bottom-4">
+        <div className="mx-auto flex w-full max-w-xl gap-2 rounded-2xl border border-border/80 bg-background/95 p-2 shadow-xl shadow-ink/10 backdrop-blur-xl">
           <Link
             href={
               questions.length > 0

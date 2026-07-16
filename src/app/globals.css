@@ -133,6 +133,9 @@
   }
   h1 { line-height: 1.05; }
   h2, h3 { line-height: 1.15; }
+  .dark-surface :where(h1, h2, h3) {
+    color: inherit;
+  }
   button {
     transition: transform 0.12s ease;
   }
@@ -145,6 +148,24 @@
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
     }
+  }
+}
+
+@layer components {
+  .reading-copy {
+    max-width: 68ch;
+    font-family: var(--font-reading), "Atkinson Hyperlegible Next", "Segoe UI", Arial, sans-serif;
+    font-size: 1.0625rem;
+    line-height: 1.75;
+    letter-spacing: 0;
+    color: rgb(17 21 45 / 0.84);
+    text-wrap: pretty;
+  }
+
+  .reading-copy :where(p, li) {
+    font-size: inherit;
+    line-height: inherit;
+    color: inherit;
   }
 }
 

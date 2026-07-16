@@ -22,6 +22,9 @@ export function TopNav({ isAdmin = false }: { isAdmin?: boolean }) {
   const pathname = usePathname();
   const phone = process.env.NEXT_PUBLIC_CONTACT_PHONE;
   const youtube = process.env.NEXT_PUBLIC_YOUTUBE_URL;
+  const isActiveQuiz = /^\/battle\/[^/]+$/.test(pathname);
+
+  if (isActiveQuiz) return null;
 
   return (
     <header className="sticky top-0 z-50 hidden border-b border-primary/10 bg-card/88 backdrop-blur-xl lg:block">

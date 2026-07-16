@@ -18,6 +18,7 @@ import {
   updatePipelineRun,
   updateContentStatus,
   assignDailySlot,
+  getPublishedContentItems,
 } from "@/lib/content/data";
 import { generateContentFromArticle } from "@/lib/content/summarizer";
 import { generateQuizQuestions } from "@/lib/content/quiz-generator";
@@ -26,6 +27,8 @@ import { istToday } from "@/lib/utils/date";
 import { getPublishQualityIssues } from "@/lib/content/quality";
 
 const parser = new Parser();
+const PIPELINE_CONCURRENCY = 3;
+const MIN_CANDIDATE_POOL = 24;
 
 const FEEDS = [
   { source: "PIB", url: "https://www.pib.gov.in/RssMain.aspx?ModId=6&Lang=1" },
@@ -528,6 +531,7 @@ export interface PipelineResult {
   totalFetched: number;
   relevant: number;
   generated?: number;
+  attempted?: number;
   questions?: number;
   autoPublish?: boolean;
   autoPublished?: number;
@@ -545,6 +549,14 @@ export async function runIngestPipeline(options: {
   const limit = Math.min(options.limit ?? 12, 12);
   const dryRun = options.dryRun ?? false;
   const autoPublish = options.autoPublish === true && !dryRun;
+  const contentDate = istToday();
+
+  const existingPublishedCount = autoPublish
+    ? (await getPublishedContentItems()).filter(
+        (item) => item.content_date === contentDate && item.daily_slot !== null
+      ).length
+    : 0;
+  const targetCount = autoPublish ? Math.max(0, limit - existingPublishedCount) : limit;
 
   if (!dryRun && !process.env.ANTHROPIC_API_KEY) {
     throw Object.assign(
@@ -558,7 +570,7 @@ export async function runIngestPipeline(options: {
 
   await addPipelineRun({
     id: runId,
-    run_date: istToday(),
+    run_date: contentDate,
     sources_queried: FEEDS.map((f) => f.source),
     urls_discovered: [],
     items_generated: 0,
@@ -609,7 +621,19 @@ export async function runIngestPipeline(options: {
         return i.score >= 6 && (hasBroadExamTopic || trustedInstitutionalSource);
       })
       .sort((a, b) => b.score - a.score);
-    const relevant = await selectEditorialEdition(scored, limit);
+
+    // A daily edition needs 12 successful cards, not merely 12 attempted
+    // sources. Keep a larger pool so generation/quality failures can be
+    // replaced. The score-5 fallback is still CLAT-relevant, but prevents a
+    // quiet news day from producing fewer than 12 candidates.
+    const candidatePoolSize = dryRun
+      ? limit
+      : Math.max(MIN_CANDIDATE_POOL, targetCount * 2);
+    const fallbackScored = allItems
+      .filter((item) => item.score >= 5)
+      .sort((a, b) => b.score - a.score);
+    const candidateSource = scored.length >= candidatePoolSize ? scored : fallbackScored;
+    const relevant = await selectEditorialEdition(candidateSource, candidatePoolSize);
 
     await updatePipelineRun(runId, { urls_discovered: relevant.map((i) => i.link) });
 
@@ -632,121 +656,169 @@ export async function runIngestPipeline(options: {
       };
     }
 
-    // 3. Generate via Claude — persist each item immediately so a Vercel
-    //    function timeout mid-loop still preserves completed items.
+    if (targetCount === 0) {
+      await updatePipelineRun(runId, { status: "completed" });
+      return {
+        runId,
+        dryRun: false,
+        autoPublish,
+        totalFetched: allItems.length,
+        relevant: relevant.length,
+        attempted: 0,
+        generated: 0,
+        autoPublished: 0,
+        autoPublishSkipped: 0,
+        questions: 0,
+        errors: [],
+      };
+    }
+
+    // 3. Generate in small batches. Each completed item is persisted before
+    // publication; publication remains sequential so daily slots cannot race.
     let savedCount = 0;
     let approvedCount = 0;
     let skippedAutoPublishCount = 0;
+    let attemptedCount = 0;
+    let candidateOffset = 0;
     const errors: string[] = [];
 
-    for (const feedItem of relevant) {
-      try {
-        const fetched = await fetchArticleText(feedItem.link);
-        const articleText = fetched?.text || feedItem.snippet || undefined;
+    while (candidateOffset < relevant.length) {
+      const completedCount = autoPublish ? approvedCount : savedCount;
+      const remaining = targetCount - completedCount;
+      if (remaining <= 0) break;
 
-        const content = await generateContentFromArticle(
-          feedItem.title,
-          feedItem.link,
-          feedItem.source,
-          feedItem.topics,
-          articleText
-        );
+      const batch = relevant.slice(
+        candidateOffset,
+        candidateOffset + Math.min(PIPELINE_CONCURRENCY, remaining)
+      );
+      if (batch.length === 0) break;
+      candidateOffset += batch.length;
+      attemptedCount += batch.length;
 
-        const itemId = randomUUID();
-        const now = new Date().toISOString();
+      const generated = await Promise.allSettled(
+        batch.map(async (feedItem) => {
+          const fetched = await fetchArticleText(feedItem.link);
+          const articleText = fetched?.text || feedItem.snippet || undefined;
 
-        const newItem: ContentItem = {
-          id: itemId,
-          slug: content.slug,
-          title: content.title,
-          summary: content.summary,
-          body: content.body,
-          why_it_matters: content.why_it_matters,
-          topic_tags: content.topic_tags,
-          source_urls: [feedItem.link],
-          citations: [{ source: feedItem.source, url: feedItem.link }],
-          image_url: null,
-          difficulty: content.difficulty,
-          status: "review",
-          reviewed_by: null,
-          review_notes: `Score: ${feedItem.score} | Selected: ${feedItem.reason} | Syllabus category: ${content.clat_syllabus_category ?? ""}`,
-          published_at: null,
-          content_date: istToday(),
-          daily_slot: null,
-          created_at: now,
-          updated_at: now,
-        };
+          const content = await generateContentFromArticle(
+            feedItem.title,
+            feedItem.link,
+            feedItem.source,
+            feedItem.topics,
+            articleText
+          );
 
-        const rawQs = await generateQuizQuestions(
-          content.title,
-          content.summary,
-          content.body,
-          content.topic_tags[0],
-          content.difficulty,
-          4
-        );
+          const itemId = randomUUID();
+          const now = new Date().toISOString();
 
-        const itemQuestions: Question[] = rawQs.map((rq) => ({
-          id: randomUUID(),
-          content_item_id: itemId,
-          prompt: rq.prompt,
-          options: rq.options,
-          correct_option: rq.correct_option,
-          explanation: rq.explanation,
-          topic: content.topic_tags[0],
-          difficulty: content.difficulty,
-          source_citation: feedItem.source,
-          status: "draft" as const,
-          created_at: now,
-        }));
+          const newItem: ContentItem = {
+            id: itemId,
+            slug: content.slug,
+            title: content.title,
+            summary: content.summary,
+            body: content.body,
+            why_it_matters: content.why_it_matters,
+            topic_tags: content.topic_tags,
+            source_urls: [feedItem.link],
+            citations: [{ source: feedItem.source, url: feedItem.link }],
+            image_url: null,
+            difficulty: content.difficulty,
+            status: "review",
+            reviewed_by: null,
+            review_notes: `Score: ${feedItem.score} | Selected: ${feedItem.reason} | Syllabus category: ${content.clat_syllabus_category ?? ""}`,
+            published_at: null,
+            content_date: contentDate,
+            daily_slot: null,
+            created_at: now,
+            updated_at: now,
+          };
 
-        // Persist immediately — survives a mid-loop function timeout
-        await upsertContentItems([newItem]);
-        if (itemQuestions.length > 0) await upsertQuestions(itemQuestions);
-        savedCount++;
+          const rawQs = await generateQuizQuestions(
+            content.title,
+            content.summary,
+            content.body,
+            content.topic_tags[0],
+            content.difficulty,
+            4
+          );
 
-        if (autoPublish) {
-          const issues = getPublishQualityIssues(newItem, itemQuestions);
-          if (issues.length === 0) {
-            const approvedQuestions = itemQuestions.map((q) => ({
-              ...q,
-              status: "approved" as const,
-            }));
-            if (approvedQuestions.length > 0) await upsertQuestions(approvedQuestions);
+          const itemQuestions: Question[] = rawQs.map((rq) => ({
+            id: randomUUID(),
+            content_item_id: itemId,
+            prompt: rq.prompt,
+            options: rq.options,
+            correct_option: rq.correct_option,
+            explanation: rq.explanation,
+            topic: content.topic_tags[0],
+            difficulty: content.difficulty,
+            source_citation: feedItem.source,
+            status: "draft" as const,
+            created_at: now,
+          }));
 
-            const published = await updateContentStatus(
-              itemId,
-              "published",
-              `${newItem.review_notes ?? ""} | Auto-published by daily cron`
-            );
-            if (published) {
-              await assignDailySlot(published);
-              approvedCount++;
-            }
-          } else {
-            skippedAutoPublishCount++;
-            errors.push(
-              `Auto-publish skipped for "${feedItem.title}": ${issues.join(" ")}`
-            );
-          }
+          // Persist immediately so completed batch members survive a timeout.
+          await upsertContentItems([newItem]);
+          if (itemQuestions.length > 0) await upsertQuestions(itemQuestions);
+          return { feedItem, newItem, itemQuestions };
+        })
+      );
+
+      for (let index = 0; index < generated.length; index++) {
+        const result = generated[index];
+        const feedItem = batch[index];
+        if (result.status === "rejected") {
+          errors.push(
+            `Failed to process "${feedItem.title}": ${result.reason instanceof Error ? result.reason.message : String(result.reason)}`
+          );
+          continue;
         }
 
-        // Keep the run counter current so the dashboard reflects partial progress
-        await updatePipelineRun(runId, {
-          items_generated: savedCount,
-          items_approved: approvedCount,
-        });
-      } catch (err) {
-        errors.push(
-          `Failed to process "${feedItem.title}": ${err instanceof Error ? err.message : String(err)}`
+        savedCount++;
+        const { newItem, itemQuestions } = result.value;
+        if (!autoPublish) continue;
+
+        const issues = getPublishQualityIssues(newItem, itemQuestions);
+        if (issues.length > 0) {
+          skippedAutoPublishCount++;
+          errors.push(
+            `Auto-publish skipped for "${feedItem.title}": ${issues.join(" ")}`
+          );
+          continue;
+        }
+
+        const approvedQuestions = itemQuestions.map((question) => ({
+          ...question,
+          status: "approved" as const,
+        }));
+        if (approvedQuestions.length > 0) await upsertQuestions(approvedQuestions);
+
+        const published = await updateContentStatus(
+          newItem.id,
+          "published",
+          `${newItem.review_notes ?? ""} | Auto-published by daily cron`
         );
+        if (published && (await assignDailySlot(published)) !== null) {
+          approvedCount++;
+        }
       }
+
+      // Keep the run counter current so the dashboard reflects partial progress.
+      await updatePipelineRun(runId, {
+        items_generated: savedCount,
+        items_approved: approvedCount,
+      });
     }
 
+    const completedCount = autoPublish ? approvedCount : savedCount;
+    if (completedCount < targetCount) {
+      errors.push(
+        `Daily edition is still short: completed ${completedCount} of ${targetCount} missing cards after ${attemptedCount} attempts.`
+      );
+    }
     const runErrorLog = errors.length > 0 ? errors.join("\n") : null;
 
     await updatePipelineRun(runId, {
-      status: savedCount === 0 && runErrorLog ? "failed" : "completed",
+      status: completedCount >= targetCount ? "completed" : "failed",
       items_generated: savedCount,
       items_approved: approvedCount,
       error_log: runErrorLog,
@@ -758,6 +830,7 @@ export async function runIngestPipeline(options: {
       autoPublish,
       totalFetched: allItems.length,
       relevant: relevant.length,
+      attempted: attemptedCount,
       generated: savedCount,
       autoPublished: approvedCount,
       autoPublishSkipped: skippedAutoPublishCount,

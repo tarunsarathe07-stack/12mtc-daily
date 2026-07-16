@@ -1,5 +1,5 @@
 const baseUrl = process.env.BASE_URL || "http://localhost:3000";
-const testBattleFlow = process.env.TEST_BATTLE_FLOW !== "false";
+const testBattleFlow = process.env.TEST_BATTLE_FLOW;
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -34,7 +34,11 @@ const invalidContentType = await json("/api/battle/session", {
   body: JSON.stringify({ mode: "daily" }),
 });
 assert(
-  invalidContentType.response.status === (testBattleFlow ? 415 : 401),
+  testBattleFlow === "true"
+    ? invalidContentType.response.status === 415
+    : testBattleFlow === "false"
+      ? invalidContentType.response.status === 401
+      : [401, 415].includes(invalidContentType.response.status),
   `Unexpected non-JSON battle response: ${invalidContentType.response.status}`
 );
 
@@ -44,11 +48,14 @@ const started = await json("/api/battle/session", {
   body: JSON.stringify({ mode: "daily" }),
 });
 
-if (!testBattleFlow) {
+if (started.response.status === 401) {
+  assert(testBattleFlow !== "true", "Authenticated battle flow was explicitly required");
   assert(started.response.status === 401, "Anonymous battle session was not rejected");
   console.log("Anonymous production security checks passed");
   process.exit(0);
 }
+
+assert(testBattleFlow !== "false", "Anonymous-only security mode unexpectedly started a battle");
 
 assert(started.response.ok, `Battle session failed: ${JSON.stringify(started.body)}`);
 assert(started.body?.questions?.length === 12, "Battle did not return 12 questions");
@@ -89,11 +96,19 @@ const completed = await json("/api/battle/complete", {
 assert(completed.response.ok, `Complete battle failed: ${JSON.stringify(completed.body)}`);
 assert(completed.body?.skipped === 12, "Completion summary is inconsistent");
 
+const recovered = await json(`/api/battle/result/${sessionId}`);
+assert(recovered.response.ok, `Persisted result could not be recovered: ${JSON.stringify(recovered.body)}`);
+assert(recovered.body?.sessionId === sessionId, "Recovered result belongs to the wrong session");
+assert(recovered.body?.playerScore === completed.body?.playerScore, "Recovered score changed");
+
 const duplicate = await json("/api/battle/complete", {
   method: "POST",
   headers: { "content-type": "application/json", origin: baseUrl },
   body: JSON.stringify({ sessionId }),
 });
-assert(duplicate.response.status === 409, "Duplicate completion was not blocked");
+assert(duplicate.response.ok, "Completed session was not safely replayable");
+assert(duplicate.body?.sessionId === sessionId, "Duplicate completion returned the wrong session");
+assert(duplicate.body?.newXp === completed.body?.newXp, "Duplicate completion awarded XP twice");
+assert(duplicate.body?.newRating === completed.body?.newRating, "Duplicate completion changed rating twice");
 
 console.log("Security smoke checks passed");

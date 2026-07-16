@@ -6,8 +6,9 @@
  *   - Vercel Cron: `Authorization: Bearer ${CRON_SECRET}` (Vercel sets this
  *     automatically when the CRON_SECRET env var exists)
  *
- * Generates up to 12 items. By default they land in REVIEW. Set
- * AUTO_PUBLISH_DAILY_INGEST=true to publish quality-passing cards directly.
+ * Fills the daily edition to 12 items. By default generated cards land in
+ * REVIEW. Set AUTO_PUBLISH_DAILY_INGEST=true to fill quality-passing slots
+ * directly, including backfilling a partially completed day on a rerun.
  */
 
 import { runIngestPipeline } from "@/lib/content/pipeline";
@@ -15,7 +16,7 @@ import { isMockMode } from "@/lib/content/config";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 120;
+export const maxDuration = 300;
 
 export async function GET(request: Request) {
   const cronSecret = process.env.CRON_SECRET;

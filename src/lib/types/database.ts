@@ -53,6 +53,7 @@ export interface QuizSession {
   bot_score: number | null;
   created_at: string;
   completed_at: string | null;
+  result_summary?: BattleResultSummary | null;
 }
 
 export interface QuizAnswer {
@@ -71,6 +72,42 @@ export interface QuizAnswer {
   bot_time_ms: number | null;
   topic: string | null;
   created_at: string;
+}
+
+export interface BattleResultSummary {
+  sessionId: string;
+  winner: "player1" | "player2" | "draw";
+  won: boolean;
+  draw: boolean;
+  playerScore: number;
+  botScore: number;
+  correct: number;
+  wrong: number;
+  skipped: number;
+  accuracy: number;
+  playerAvgMs: number;
+  botAvgMs: number;
+  ratingBefore: number;
+  ratingChange: number;
+  newRating: number;
+  xpEarned: number;
+  newXp: number;
+  streak: number;
+  bestCombo: number;
+  weakTopics: Array<{ topic: string; mastery_pct: number }>;
+  botName: string;
+  mode: "daily" | "topic";
+  topic: string | null;
+  review: Array<{
+    index: number;
+    prompt: string;
+    correctOption: string;
+    correctText: string;
+    playerOption: string | null;
+    playerCorrect: boolean;
+    botOption: string | null;
+    botCorrect: boolean;
+  }>;
 }
 
 export type ConversionEventType =

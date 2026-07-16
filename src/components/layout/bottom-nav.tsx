@@ -15,6 +15,9 @@ const navItems = [
 
 export function BottomNav() {
   const pathname = usePathname();
+  const isActiveQuiz = /^\/battle\/[^/]+$/.test(pathname);
+
+  if (isActiveQuiz) return null;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden">

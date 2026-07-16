@@ -64,25 +64,67 @@ export default function BattleRoomPage() {
   const [rail, setRail] = useState<RailState[]>([]);
   const [finishing, setFinishing] = useState(false);
   const [battleError, setBattleError] = useState<string | null>(null);
-  const questionStart = useRef(Date.now());
+  const questionStart = useRef(0);
   const submitting = useRef(false);
+  const allowExit = useRef(false);
 
   useEffect(() => {
-    const raw = sessionStorage.getItem(`tmd-battle-${sessionId}`);
-    if (!raw) {
-      setMissing(true);
-      return;
-    }
-    try {
-      setSession(JSON.parse(raw) as SessionPayload);
-    } catch {
-      setMissing(true);
-    }
+    const loadTimer = window.setTimeout(() => {
+      const raw = sessionStorage.getItem(`tmd-battle-${sessionId}`);
+      if (!raw) {
+        setMissing(true);
+        return;
+      }
+      try {
+        questionStart.current = Date.now();
+        setSession(JSON.parse(raw) as SessionPayload);
+      } catch {
+        setMissing(true);
+      }
+    }, 0);
+    return () => window.clearTimeout(loadTimer);
   }, [sessionId]);
 
   const total = session?.questions.length ?? 0;
   const question = session?.questions[idx];
   const timePerQ = session?.timePerQuestionSec ?? 15;
+  const timed = timePerQ > 0;
+
+  useEffect(() => {
+    if (!session) return;
+
+    const confirmExit = () =>
+      window.confirm("Leave this quiz? Your current question will not be completed.");
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (allowExit.current) return;
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    const handleDocumentClick = (event: MouseEvent) => {
+      if (allowExit.current || event.defaultPrevented) return;
+      const target = event.target instanceof Element ? event.target.closest("a") : null;
+      if (!target) return;
+      const href = target.getAttribute("href");
+      if (!href || href.startsWith("#")) return;
+      const destination = new URL(target.href, window.location.href);
+      if (destination.origin !== window.location.origin || destination.pathname === window.location.pathname) {
+        return;
+      }
+      if (!confirmExit()) {
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
+      allowExit.current = true;
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    document.addEventListener("click", handleDocumentClick, true);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      document.removeEventListener("click", handleDocumentClick, true);
+    };
+  }, [session]);
 
   const submit = useCallback(
     async (option: string | null) => {
@@ -136,8 +178,7 @@ export default function BattleRoomPage() {
 
   useEffect(() => {
     if (!session || reveal) return;
-    setTimeLeft(timePerQ);
-    questionStart.current = Date.now();
+    if (!timed) return;
     const interval = setInterval(() => {
       setTimeLeft((t) => {
         if (t <= 1) {
@@ -149,21 +190,21 @@ export default function BattleRoomPage() {
       });
     }, 1000);
     return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [idx, session, reveal === null]);
+  }, [session, reveal, timed, submit]);
 
   useEffect(() => {
     if (!session || reveal) return;
-    setBotAnswered(false);
     const delay = session.botDelaysMs[idx] ?? 5000;
     const t = setTimeout(() => setBotAnswered(true), delay);
     return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [idx, session]);
+  }, [idx, session, reveal]);
 
   const next = useCallback(async () => {
     if (!session) return;
     if (idx + 1 < total) {
+      setTimeLeft(timePerQ);
+      questionStart.current = Date.now();
+      setBotAnswered(false);
       setReveal(null);
       setLocked(null);
       setIdx((i) => i + 1);
@@ -182,6 +223,7 @@ export default function BattleRoomPage() {
         summary.bestCombo = bestCombo;
         sessionStorage.setItem(`tmd-result-${session.sessionId}`, JSON.stringify(summary));
         sessionStorage.removeItem(`tmd-battle-${session.sessionId}`);
+        allowExit.current = true;
         router.push(`/battle/${session.sessionId}/results`);
         return;
       }
@@ -190,7 +232,7 @@ export default function BattleRoomPage() {
       setBattleError("The result service could not be reached. Please try again.");
     }
     setFinishing(false);
-  }, [session, idx, total, bestCombo, router]);
+  }, [session, idx, total, timePerQ, bestCombo, router]);
 
   if (missing) {
     return (
@@ -220,16 +262,33 @@ export default function BattleRoomPage() {
   const raceTotal = pShare + bShare;
   const playerPct = raceTotal === 0 ? 50 : (pShare / raceTotal) * 100;
 
-  const timerFrac = timeLeft / timePerQ;
-  const timerUrgent = timeLeft <= 5;
+  const timerFrac = timed ? timeLeft / timePerQ : 1;
+  const timerUrgent = timed && timeLeft <= 5;
+  const timerAnnouncement =
+    timed && (timeLeft === 10 || timeLeft <= 5) ? `${timeLeft} seconds remaining` : "";
 
   return (
-    <div className="surface-grid bg-ink flex min-h-dvh flex-col text-white">
+    <div className="dark-surface surface-grid bg-ink -mb-20 flex min-h-dvh flex-col text-white lg:-mb-8">
       {/* ── Cockpit header ── */}
       <header className="border-b border-white/[0.08]">
-        <div className="mx-auto flex h-16 max-w-2xl items-center justify-between px-4 lg:max-w-4xl">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
+        <div className="mx-auto grid h-16 max-w-2xl grid-cols-[1fr_auto_1fr] items-center px-2 sm:px-4 lg:max-w-4xl">
+          <div className="flex min-w-0 items-center gap-1.5 sm:gap-2.5">
+            <button
+              type="button"
+              onClick={() => {
+                if (!window.confirm("Leave this quiz? Your current question will not be completed.")) {
+                  return;
+                }
+                allowExit.current = true;
+                router.push("/battle");
+              }}
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 text-white/60 transition hover:bg-white/[0.06] hover:text-white"
+              aria-label="Exit quiz"
+              title="Exit quiz"
+            >
+              <X className="h-4 w-4" />
+            </button>
+            <div className="hidden h-9 w-9 items-center justify-center rounded-lg bg-primary sm:flex">
               <User className="h-4.5 w-4.5 text-white" />
             </div>
             <div>
@@ -245,8 +304,8 @@ export default function BattleRoomPage() {
             </div>
           </div>
 
-          <div className="text-center">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40">
+          <div className="px-1 text-center">
+            <p className="hidden text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40 sm:block">
               CLAT Arena
             </p>
             {combo >= 2 ? (
@@ -265,9 +324,9 @@ export default function BattleRoomPage() {
             )}
           </div>
 
-          <div className="flex items-center gap-2.5">
-            <div className="text-right">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-white/40">
+          <div className="flex min-w-0 items-center justify-end gap-1.5 sm:gap-2.5">
+            <div className="min-w-0 text-right">
+              <p className="max-w-[4.75rem] truncate text-[10px] font-semibold uppercase tracking-wider text-white/40 sm:max-w-none">
                 {session.bot.name}
               </p>
               <motion.p
@@ -339,22 +398,35 @@ export default function BattleRoomPage() {
         </div>
 
         {/* Timer — refined linear system */}
-        <div className="mt-3 flex items-center gap-3">
-          <div className="h-[3px] flex-1 overflow-hidden rounded-full bg-white/[0.07]">
-            <motion.div
-              className={cn("h-full rounded-full", timerUrgent ? "bg-coral" : "bg-saffron")}
-              animate={{ width: `${timerFrac * 100}%` }}
-              transition={{ duration: 1, ease: "linear" }}
-            />
-          </div>
-          <span
-            className={cn(
-              "w-8 text-right text-sm font-black tabular-nums",
-              timerUrgent ? "text-coral" : "text-white/70"
-            )}
-          >
-            {timeLeft}s
-          </span>
+        <div className="mt-3 flex min-h-5 items-center gap-3">
+          {timed ? (
+            <>
+              <div className="h-[3px] flex-1 overflow-hidden rounded-full bg-white/[0.07]">
+                <motion.div
+                  className={cn("h-full rounded-full", timerUrgent ? "bg-coral" : "bg-saffron")}
+                  animate={{ width: `${timerFrac * 100}%` }}
+                  transition={{ duration: 1, ease: "linear" }}
+                />
+              </div>
+              <span
+                className={cn(
+                  "w-8 text-right text-sm font-black tabular-nums",
+                  timerUrgent ? "text-coral" : "text-white/70"
+                )}
+                role="timer"
+                aria-label={`${timeLeft} seconds remaining`}
+              >
+                {timeLeft}s
+              </span>
+              <span className="sr-only" aria-live="polite" aria-atomic="true">
+                {timerAnnouncement}
+              </span>
+            </>
+          ) : (
+            <p className="w-full text-center text-xs font-bold uppercase tracking-[0.16em] text-white/50">
+              Untimed practice
+            </p>
+          )}
         </div>
       </div>
 

@@ -23,6 +23,7 @@ import type {
   QuizAnswer,
   ConversionEvent,
   BattleResult,
+  BattleResultSummary,
   UserTopicMastery,
   DailyUserActivity,
 } from "@/lib/types/database";
@@ -396,6 +397,29 @@ export async function updateQuizSession(id: string, updates: Partial<QuizSession
   if (error) throw error;
 }
 
+export async function saveQuizResultSummary(
+  sessionId: string,
+  userId: string,
+  summary: BattleResultSummary
+): Promise<void> {
+  if (!shouldUseSupabaseStore()) {
+    withStore((d) => {
+      const session = d.quiz_sessions.find(
+        (candidate) => candidate.id === sessionId && candidate.user_id === userId
+      );
+      if (!session) throw new Error("Session not found");
+      session.result_summary = summary;
+    });
+    return;
+  }
+  const { error } = await admin()
+    .from("quiz_sessions")
+    .update({ result_summary: summary })
+    .eq("id", sessionId)
+    .eq("user_id", userId);
+  if (error) throw error;
+}
+
 export async function addQuizAnswer(answer: QuizAnswer): Promise<void> {
   if (!shouldUseSupabaseStore()) {
     withStore((d) => {
@@ -473,6 +497,29 @@ export async function recordBattleResult(result: BattleResult): Promise<void> {
   }
   const { error } = await admin().from("battle_results").insert(result);
   if (error) throw error;
+}
+
+export async function getBattleResultForQuizSession(
+  sessionId: string,
+  userId: string
+): Promise<BattleResult | null> {
+  if (!shouldUseSupabaseStore()) {
+    return readOnly(
+      (d) =>
+        d.battle_results.find(
+          (result) => result.quiz_session_id === sessionId && result.user_id === userId
+        ) ?? null
+    );
+  }
+  const { data, error } = await admin()
+    .from("battle_results")
+    .select("*")
+    .eq("quiz_session_id", sessionId)
+    .eq("user_id", userId)
+    .eq("is_bot", false)
+    .maybeSingle();
+  if (error) throw error;
+  return (data ?? null) as BattleResult | null;
 }
 
 export interface BattleCompletionInput {

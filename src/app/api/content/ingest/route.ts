@@ -15,7 +15,7 @@ import { requireAdmin, adminDenied } from "@/lib/auth/admin-guard";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 300; // 5 min — sequential Claude calls for up to 12 articles
+export const maxDuration = 300; // 5 min for batched generation plus replacement candidates
 
 export async function POST(request: Request) {
   const auth = await requireAdmin(request);

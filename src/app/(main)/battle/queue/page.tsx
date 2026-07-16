@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Swords, Bot, User, AlertTriangle } from "lucide-react";
@@ -56,16 +56,16 @@ function QueueContent() {
   const [phase, setPhase] = useState<"searching" | "found" | "countdown" | "error">("searching");
   const [session, setSession] = useState<SessionPayload | null>(null);
   const [countdown, setCountdown] = useState(3);
+  const [timed, setTimed] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
   const [questionReadiness, setQuestionReadiness] = useState<{
     available: number;
     required: number;
   } | null>(null);
-  const startedAt = useRef(Date.now());
-
   // Create the server session while "searching"
   useEffect(() => {
     let cancelled = false;
+    const startedAt = Date.now();
     async function createSession() {
       try {
         const res = await fetch("/api/battle/session", {
@@ -89,7 +89,7 @@ function QueueContent() {
           setPhase("error");
           return;
         }
-        const wait = Math.max(0, MIN_SEARCH_MS - (Date.now() - startedAt.current));
+        const wait = Math.max(0, MIN_SEARCH_MS - (Date.now() - startedAt));
         setTimeout(() => {
           if (cancelled) return;
           setSession(data as SessionPayload);
@@ -109,27 +109,24 @@ function QueueContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Found → brief beat → countdown
-  useEffect(() => {
-    if (phase !== "found") return;
-    const t = setTimeout(() => setPhase("countdown"), 1100);
-    return () => clearTimeout(t);
-  }, [phase]);
-
-  // 3-2-1 → store payload → battle room
+  // The countdown only starts after the student explicitly confirms readiness.
   useEffect(() => {
     if (phase !== "countdown" || !session) return;
     if (countdown === 0) {
-      sessionStorage.setItem(`tmd-battle-${session.sessionId}`, JSON.stringify(session));
+      const readySession = {
+        ...session,
+        timePerQuestionSec: timed ? session.timePerQuestionSec : 0,
+      };
+      sessionStorage.setItem(`tmd-battle-${session.sessionId}`, JSON.stringify(readySession));
       router.push(`/battle/${session.sessionId}`);
       return;
     }
     const t = setTimeout(() => setCountdown((c) => c - 1), 900);
     return () => clearTimeout(t);
-  }, [phase, countdown, session, router]);
+  }, [phase, countdown, session, timed, router]);
 
   return (
-    <div className="bg-ink relative flex min-h-dvh flex-col items-center justify-center overflow-hidden px-4 text-white">
+    <div className="dark-surface bg-ink relative -mb-20 flex min-h-dvh flex-col items-center justify-center overflow-hidden px-4 text-white lg:-mb-8">
       <div className="relative z-10 w-full max-w-sm space-y-8 text-center">
         <AnimatePresence mode="wait">
           {phase === "searching" && (
@@ -199,6 +196,33 @@ function QueueContent() {
                   You&apos;re facing <span className="font-semibold text-white">{session.bot.name}</span> 🤖
                 </p>
               </div>
+              {phase === "found" && (
+                <div className="space-y-4">
+                  <label className="mx-auto flex max-w-xs cursor-pointer items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-left">
+                    <span>
+                      <span className="block text-sm font-bold text-white">15-second timer</span>
+                      <span className="block text-xs text-white/50">Turn it off for untimed practice.</span>
+                    </span>
+                    <input
+                      type="checkbox"
+                      checked={timed}
+                      onChange={(event) => setTimed(event.target.checked)}
+                      className="peer sr-only"
+                    />
+                    <span className="relative h-6 w-11 rounded-full bg-white/15 transition peer-checked:bg-saffron after:absolute after:left-1 after:top-1 after:h-4 after:w-4 after:rounded-full after:bg-white after:transition-transform peer-checked:after:translate-x-5" />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCountdown(3);
+                      setPhase("countdown");
+                    }}
+                    className="w-full rounded-xl bg-saffron px-6 py-3 text-sm font-black text-ink shadow-lg shadow-saffron/20 hover:bg-saffron/90"
+                  >
+                    I&apos;m ready — start quiz
+                  </button>
+                </div>
+              )}
               {phase === "countdown" && (
                 <motion.div
                   key={countdown}

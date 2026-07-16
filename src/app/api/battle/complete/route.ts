@@ -16,7 +16,6 @@ import {
   recordBattleResult,
   recordEvent,
   getProfile,
-  getMastery,
   type BattleCompletionSummary,
 } from "@/lib/student/data";
 import { calculateNewRating } from "@/lib/battle/elo";
@@ -28,6 +27,10 @@ import {
   routeErrorResponse,
   sameOriginError,
 } from "@/lib/security/request";
+import {
+  createAndPersistBattleResultSummary,
+  getCompletedBattleResultSummary,
+} from "@/lib/battle/result-summary";
 
 export const runtime = "nodejs";
 
@@ -64,7 +67,9 @@ export async function POST(request: Request) {
       return Response.json({ error: "Session not found" }, { status: 404 });
     }
     if (session.status === "completed") {
-      return Response.json({ error: "Session already completed" }, { status: 409 });
+      const completed = await getCompletedBattleResultSummary(sessionId, userId);
+      if (completed) return Response.json(completed);
+      return Response.json({ error: "Completed result not found" }, { status: 404 });
     }
 
     const answers = await getSessionAnswers(sessionId);
@@ -79,34 +84,9 @@ export async function POST(request: Request) {
       ? await completeQuizSessionAtomically(sessionId, userId)
       : await completeLocalBattle(sessionId, userId, session, answers);
 
-    const mastery = await getMastery(userId);
-    const weakTopics = [...mastery]
-      .sort((a, b) => a.mastery_pct - b.mastery_pct)
-      .slice(0, 3)
-      .map((m) => ({ topic: m.topic, mastery_pct: m.mastery_pct }));
-
-    return Response.json({
-      sessionId,
-      ...summary,
-      weakTopics,
-      botName: session.bot_profile.name,
-      mode: session.mode,
-      topic: session.topic,
-      review: answers.map((answer) => {
-        const question = session.questions[answer.question_index];
-        return {
-          index: answer.question_index,
-          prompt: question?.prompt ?? "",
-          correctOption: question?.correct_option ?? "",
-          correctText:
-            question?.options.find((option) => option.label === question.correct_option)?.text ?? "",
-          playerOption: answer.selected_option,
-          playerCorrect: answer.is_correct,
-          botOption: answer.bot_option,
-          botCorrect: answer.bot_correct,
-        };
-      }),
-    });
+    return Response.json(
+      await createAndPersistBattleResultSummary(session, userId, summary, answers)
+    );
   } catch (error) {
     const message = error instanceof Error ? error.message : "";
     if (message.includes("SESSION_ALREADY_COMPLETED")) {

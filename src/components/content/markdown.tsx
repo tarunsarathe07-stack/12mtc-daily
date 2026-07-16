@@ -23,7 +23,7 @@ function renderInline(text: string, keyPrefix: string): React.ReactNode[] {
 
 export function Markdown({ body }: { body: string }) {
   return (
-    <div className="space-y-1">
+    <div className="reading-copy space-y-1">
       {body.split("\n").map((line, i) => {
         if (line.startsWith("## ")) {
           return (
@@ -34,21 +34,21 @@ export function Markdown({ body }: { body: string }) {
         }
         if (line.startsWith("- ")) {
           return (
-            <p key={i} className="ml-4 mb-1.5 text-[15px] leading-relaxed text-muted-foreground">
+            <p key={i} className="mb-1.5 ml-4">
               •&nbsp;{renderInline(line.replace("- ", ""), `b${i}`)}
             </p>
           );
         }
         if (/^\d+\./.test(line)) {
           return (
-            <p key={i} className="ml-4 mb-1.5 text-[15px] leading-relaxed text-muted-foreground">
+            <p key={i} className="mb-1.5 ml-4">
               {renderInline(line, `n${i}`)}
             </p>
           );
         }
         if (line.trim() === "") return <div key={i} className="h-2" />;
         return (
-          <p key={i} className="mb-2 text-[15px] leading-relaxed text-muted-foreground">
+          <p key={i} className="mb-2">
             {renderInline(line, `p${i}`)}
           </p>
         );
