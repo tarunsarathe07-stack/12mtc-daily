@@ -343,9 +343,11 @@ function canAddToEdition(
   }
 
   const maxFromOneSource = options.relaxedSourceCap
-    ? limit >= 12
-      ? 5
-      : Math.max(3, Math.ceil(limit / 2))
+    // This pass builds a replacement pool, not the final edition. Earlier
+    // passes already enforce diversity; let the reserve expand when only a
+    // few reliable feeds have enough fresh stories to cover generation or
+    // quality-gate failures.
+    ? limit
     : limit >= 12
     ? 4
     : Math.max(3, Math.ceil(limit / 2));
