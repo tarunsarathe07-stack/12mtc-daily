@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/daily-ingest",
       "schedule": "30 0 * * *"
+    },
+    {
+      "path": "/api/cron/daily-health",
+      "schedule": "30 1 * * *"
     }
   ]
 }

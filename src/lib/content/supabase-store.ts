@@ -148,9 +148,23 @@ export async function isUrlIngested(url: string): Promise<boolean> {
 
 export async function getAllQuestions(): Promise<Question[]> {
   const supabase = createAdminClient();
-  const { data, error } = await supabase.from("questions").select("*");
-  if (error) throw error;
-  return (data ?? []) as Question[];
+  const pageSize = 1000;
+  const questions: Question[] = [];
+
+  for (let offset = 0; ; offset += pageSize) {
+    const { data, error } = await supabase
+      .from("questions")
+      .select("*")
+      .order("created_at", { ascending: true })
+      .order("id", { ascending: true })
+      .range(offset, offset + pageSize - 1);
+    if (error) throw error;
+    const page = (data ?? []) as Question[];
+    questions.push(...page);
+    if (page.length < pageSize) break;
+  }
+
+  return questions;
 }
 
 export async function getQuestionsForContentItem(contentItemId: string): Promise<Question[]> {

@@ -57,15 +57,23 @@ interface DailyStatus {
   overflow: number;
   approvedQuestionsToday: number;
   approvedQuestionsTotal: number;
+  approvedDailyNewsQuestionsToday: number;
+  approvedContextQuestionsToday: number;
+  cardsWithDailyNewsQuestion: number;
+  cardsWithContextQuestions: number;
   battleReady: boolean;
   questionFallbackActive: boolean;
   topicMix: Partial<Record<TopicTag, number>>;
+  sourceMix: Record<string, number>;
+  sourceConcentrationWarning: string | null;
   slots: Array<{
     slot: number;
     title: string;
     id: string;
     topicTags: TopicTag[];
     approvedQuestionCount: number;
+    dailyNewsQuestionCount: number;
+    contextQuestionCount: number;
   } | null>;
 }
 
@@ -214,7 +222,7 @@ export default function AdminPage() {
                     key={idx}
                     title={
                       slot
-                        ? `${slot.title} · ${slot.topicTags.join(", ")} · ${slot.approvedQuestionCount} approved questions`
+                        ? `${slot.title} · ${slot.topicTags.join(", ")} · ${slot.dailyNewsQuestionCount} daily + ${slot.contextQuestionCount} context questions`
                         : `Slot ${idx + 1} — empty`
                     }
                     className={`flex aspect-square flex-col items-center justify-center rounded-md text-xs font-bold ${
@@ -226,7 +234,7 @@ export default function AdminPage() {
                     <span>{idx + 1}</span>
                     {slot && (
                       <span className="mt-0.5 text-[9px] font-black opacity-75">
-                        {slot.approvedQuestionCount}Q
+                        {slot.dailyNewsQuestionCount}D/{slot.contextQuestionCount}C
                       </span>
                     )}
                   </div>
@@ -266,26 +274,24 @@ export default function AdminPage() {
                   legal-heavy, publish it — but avoid letting court updates crowd out national, international,
                   economy, and policy stories every day.
                 </p>
+                {daily.sourceConcentrationWarning && (
+                  <p className="mt-2 text-xs font-semibold text-amber-700">
+                    Source concentration: {daily.sourceConcentrationWarning}
+                  </p>
+                )}
               </div>
 
               {/* Question readiness warning — admin-visible, never student-facing */}
-              {(!daily.battleReady || daily.questionFallbackActive) && (
+              {(!daily.battleReady ||
+                daily.questionFallbackActive ||
+                daily.cardsWithContextQuestions < daily.target) && (
                 <div className="flex items-start gap-2 rounded-lg bg-background/70 p-2.5 text-xs">
                   <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600" />
                   <span className="text-muted-foreground">
-                    {daily.battleReady ? (
-                      <>
-                        Only <strong>{daily.approvedQuestionsToday}</strong> approved questions from
-                        today&apos;s items — the quiz can start, but it will top up from the approved
-                        archive until today reaches 12.
-                      </>
-                    ) : (
-                      <>
-                        Battle is not ready: <strong>{daily.approvedQuestionsTotal}</strong>/
-                        {daily.target} approved questions exist across the whole pool. Publish more
-                        cards with linked questions before sending students to Quiz.
-                      </>
-                    )}
+                    Daily quiz coverage: <strong>{daily.cardsWithDailyNewsQuestion}</strong>/
+                    {daily.target} cards. Card deep-dives: <strong>{daily.cardsWithContextQuestions}</strong>/
+                    {daily.target}. The daily quiz falls back to older direct-news questions only
+                    when a published card has no direct question.
                   </span>
                 </div>
               )}

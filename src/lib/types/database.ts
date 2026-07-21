@@ -12,6 +12,7 @@ export type TopicTag =
 
 export type ContentStatus = "draft" | "review" | "approved" | "published" | "rejected";
 export type QuestionStatus = "draft" | "approved" | "rejected";
+export type QuestionPurpose = "daily_news" | "context";
 export type BattleMode = "daily" | "topic";
 export type BattleStatus = "waiting" | "countdown" | "in_progress" | "completed" | "abandoned";
 export type League = "bronze" | "silver" | "gold" | "platinum" | "diamond";
@@ -188,6 +189,10 @@ export interface Question {
   topic: string;
   difficulty: Difficulty;
   source_citation: string | null;
+  /** Missing only on legacy/mock rows, which are treated as daily_news. */
+  purpose?: QuestionPurpose;
+  /** Grounding/quality contract version. Legacy rows default to 0. */
+  validation_version?: number;
   status: QuestionStatus;
   created_at: string;
 }

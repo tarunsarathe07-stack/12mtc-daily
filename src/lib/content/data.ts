@@ -15,6 +15,7 @@ import * as supa from "./supabase-store";
 import type { ContentItem, Question, TopicTag } from "@/lib/types/database";
 import type { PipelineRun } from "./store";
 import { istToday } from "@/lib/utils/date";
+import { isStudentReadyContextQuestion } from "./question-version";
 
 // ── Content items ──────────────────────────────────
 
@@ -177,15 +178,23 @@ export interface DailyStatus {
   overflow: number; // published items without a slot (beyond 12)
   approvedQuestionsToday: number;
   approvedQuestionsTotal: number;
+  approvedDailyNewsQuestionsToday: number;
+  approvedContextQuestionsToday: number;
+  cardsWithDailyNewsQuestion: number;
+  cardsWithContextQuestions: number;
   battleReady: boolean;
   questionFallbackActive: boolean;
   topicMix: Partial<Record<TopicTag, number>>;
+  sourceMix: Record<string, number>;
+  sourceConcentrationWarning: string | null;
   slots: Array<{
     slot: number;
     title: string;
     id: string;
     topicTags: TopicTag[];
     approvedQuestionCount: number;
+    dailyNewsQuestionCount: number;
+    contextQuestionCount: number;
   } | null>;
 }
 
@@ -210,21 +219,37 @@ export async function getDailyStatus(date?: string): Promise<DailyStatus> {
   const published = todays.filter((i) => i.status === "published");
   const slots: DailyStatus["slots"] = Array.from({ length: DAILY_TARGET }, () => null);
   const approvedQuestionsByItem = new Map<string, number>();
+  const dailyNewsQuestionsByItem = new Map<string, number>();
+  const contextQuestionsByItem = new Map<string, number>();
   for (const q of allQuestions) {
     if (q.status !== "approved" || !q.content_item_id) continue;
     approvedQuestionsByItem.set(
       q.content_item_id,
       (approvedQuestionsByItem.get(q.content_item_id) ?? 0) + 1
     );
+    if ((q.purpose ?? "daily_news") === "daily_news") {
+      dailyNewsQuestionsByItem.set(
+        q.content_item_id,
+        (dailyNewsQuestionsByItem.get(q.content_item_id) ?? 0) + 1
+      );
+    } else if (isStudentReadyContextQuestion(q)) {
+      contextQuestionsByItem.set(
+        q.content_item_id,
+        (contextQuestionsByItem.get(q.content_item_id) ?? 0) + 1
+      );
+    }
   }
 
   const topicMix: Partial<Record<TopicTag, number>> = {};
+  const sourceMix: Record<string, number> = {};
   let overflow = 0;
   for (const item of published) {
     const primaryTopic = item.topic_tags[0];
     if (primaryTopic) {
       topicMix[primaryTopic] = (topicMix[primaryTopic] ?? 0) + 1;
     }
+    const source = item.citations?.[0]?.source ?? "Unknown";
+    sourceMix[source] = (sourceMix[source] ?? 0) + 1;
     if (typeof item.daily_slot === "number" && item.daily_slot >= 1 && item.daily_slot <= DAILY_TARGET) {
       slots[item.daily_slot - 1] = {
         slot: item.daily_slot,
@@ -232,6 +257,8 @@ export async function getDailyStatus(date?: string): Promise<DailyStatus> {
         id: item.id,
         topicTags: item.topic_tags,
         approvedQuestionCount: approvedQuestionsByItem.get(item.id) ?? 0,
+        dailyNewsQuestionCount: dailyNewsQuestionsByItem.get(item.id) ?? 0,
+        contextQuestionCount: contextQuestionsByItem.get(item.id) ?? 0,
       };
     } else {
       overflow++;
@@ -250,6 +277,34 @@ export async function getDailyStatus(date?: string): Promise<DailyStatus> {
       q.status === "approved" && q.content_item_id && todayItemIds.has(q.content_item_id)
   ).length;
   const approvedQuestionsTotal = allQuestions.filter((q) => q.status === "approved").length;
+  const approvedDailyNewsQuestionsToday = allQuestions.filter(
+    (q) =>
+      q.status === "approved" &&
+      (q.purpose ?? "daily_news") === "daily_news" &&
+      q.content_item_id &&
+      todayItemIds.has(q.content_item_id)
+  ).length;
+  const approvedContextQuestionsToday = allQuestions.filter(
+    (q) =>
+      q.status === "approved" &&
+      isStudentReadyContextQuestion(q) &&
+      q.content_item_id &&
+      todayItemIds.has(q.content_item_id)
+  ).length;
+  const slottedItems = slots.filter((slot): slot is NonNullable<typeof slot> => slot !== null);
+  const cardsWithDailyNewsQuestion = slottedItems.filter(
+    (slot) => slot.dailyNewsQuestionCount > 0
+  ).length;
+  const cardsWithContextQuestions = slottedItems.filter(
+    (slot) => slot.contextQuestionCount >= 3
+  ).length;
+  const dailyQuizReady =
+    slottedItems.length === DAILY_TARGET && cardsWithDailyNewsQuestion === DAILY_TARGET;
+  const dominantSource = Object.entries(sourceMix).sort((a, b) => b[1] - a[1])[0];
+  const sourceConcentrationWarning =
+    dominantSource && published.length > 0 && dominantSource[1] / published.length > 0.6
+      ? `${dominantSource[0]} supplies ${dominantSource[1]} of ${published.length} published cards.`
+      : null;
 
   return {
     date: day,
@@ -261,9 +316,15 @@ export async function getDailyStatus(date?: string): Promise<DailyStatus> {
     overflow,
     approvedQuestionsToday,
     approvedQuestionsTotal,
-    battleReady: approvedQuestionsTotal >= DAILY_TARGET,
-    questionFallbackActive: approvedQuestionsToday < DAILY_TARGET,
+    approvedDailyNewsQuestionsToday,
+    approvedContextQuestionsToday,
+    cardsWithDailyNewsQuestion,
+    cardsWithContextQuestions,
+    battleReady: dailyQuizReady,
+    questionFallbackActive: !dailyQuizReady,
     topicMix,
+    sourceMix,
+    sourceConcentrationWarning,
     slots,
   };
 }

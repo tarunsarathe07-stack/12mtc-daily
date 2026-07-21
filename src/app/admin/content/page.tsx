@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { QUESTION_VALIDATION_VERSION } from "@/lib/content/question-version";
 import { TOPIC_COLORS, type TopicTag } from "@/lib/types/database";
 
 const OUTSIDE_LEGAL_MARKERS = [
@@ -33,6 +34,7 @@ function outsideLegalWarnings(item: ContentItemWithQuestions): string[] {
     .filter(Boolean).join(" ").toLowerCase();
   const warnings: string[] = [];
   item.questions.forEach((q, i) => {
+    if ((q.purpose ?? "daily_news") !== "daily_news") return;
     const qText = [q.prompt, ...q.options.map(o => o.text), q.explanation]
       .join(" ").toLowerCase();
     const hits = OUTSIDE_LEGAL_MARKERS.filter(t => qText.includes(t) && !passageText.includes(t));
@@ -47,6 +49,8 @@ interface QuestionItem {
   options: { label: string; text: string }[];
   correct_option: string;
   explanation: string;
+  purpose?: "daily_news" | "context";
+  validation_version?: number;
   status: string;
 }
 
@@ -496,6 +500,14 @@ export default function AdminContentPage() {
                                 className="rounded-lg border p-3 space-y-1"
                               >
                                 <p className="text-xs font-medium">
+                                  <span className="mr-1.5 rounded bg-muted px-1.5 py-0.5 text-[9px] font-bold uppercase text-muted-foreground">
+                                    {(q.purpose ?? "daily_news") === "context"
+                                      ? (q.validation_version ?? 0) >=
+                                        QUESTION_VALIDATION_VERSION
+                                        ? "Context"
+                                        : "Context legacy"
+                                      : "Daily"}
+                                  </span>
                                   Q{idx + 1}. {q.prompt}
                                 </p>
                                 <div className="grid grid-cols-2 gap-1">

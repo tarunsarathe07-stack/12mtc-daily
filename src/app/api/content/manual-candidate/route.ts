@@ -9,7 +9,7 @@
 import { randomUUID } from "crypto";
 import { requireAdmin, adminDenied } from "@/lib/auth/admin-guard";
 import { generateContentFromArticle } from "@/lib/content/summarizer";
-import { generateQuizQuestions } from "@/lib/content/quiz-generator";
+import { generateQuestionSets } from "@/lib/content/quiz-generator";
 import {
   isUrlIngested,
   upsertContentItems,
@@ -17,6 +17,8 @@ import {
 } from "@/lib/content/data";
 import { istToday } from "@/lib/utils/date";
 import { readJson, routeErrorResponse } from "@/lib/security/request";
+import { getQuestionQualityWarnings } from "@/lib/content/quality";
+import { QUESTION_VALIDATION_VERSION } from "@/lib/content/question-version";
 import type { ContentItem, Question, TopicTag } from "@/lib/types/database";
 
 export const runtime = "nodejs";
@@ -136,31 +138,45 @@ export async function POST(request: Request) {
       updated_at: now,
     };
 
-    const rawQuestions = await generateQuizQuestions(
+    const questionSets = await generateQuestionSets(
       content.title,
       content.summary,
       content.body,
       content.topic_tags[0],
-      content.difficulty,
-      4
+      content.difficulty
     );
 
-    const questions: Question[] = rawQuestions.map((question) => ({
-      id: randomUUID(),
-      content_item_id: itemId,
-      prompt: question.prompt,
-      options: question.options,
-      correct_option: question.correct_option,
-      explanation: question.explanation,
-      topic: content.topic_tags[0],
-      difficulty: content.difficulty,
-      source_citation: source,
-      status: "draft",
-      created_at: now,
-    }));
+    const questions: Question[] = [
+      ...questionSets.dailyNews.map((question) => ({
+        question,
+        purpose: "daily_news" as const,
+      })),
+      ...questionSets.context.map((question) => ({
+        question,
+        purpose: "context" as const,
+      })),
+    ].map(({ question, purpose }) => ({
+        id: randomUUID(),
+        content_item_id: itemId,
+        prompt: question.prompt,
+        options: question.options,
+        correct_option: question.correct_option,
+        explanation: question.explanation,
+        topic: content.topic_tags[0],
+        difficulty: content.difficulty,
+        source_citation: source,
+        purpose,
+        validation_version: QUESTION_VALIDATION_VERSION,
+        status: "draft" as const,
+        created_at: now,
+      }));
+
+    const safeQuestions = questions.filter(
+      (question) => getQuestionQualityWarnings(item, [question]).length === 0
+    );
 
     await upsertContentItems([item]);
-    await upsertQuestions(questions);
+    await upsertQuestions(safeQuestions);
 
     return Response.json({
       success: true,
@@ -173,7 +189,7 @@ export async function POST(request: Request) {
         content_date: item.content_date,
         topics: item.topic_tags,
       },
-      questions: questions.length,
+      questions: safeQuestions.length,
     });
   } catch (error) {
     return routeErrorResponse(error, "Manual candidate failed", "Manual candidate generation failed");

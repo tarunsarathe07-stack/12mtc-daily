@@ -21,10 +21,14 @@ import {
   getPublishedContentItems,
 } from "@/lib/content/data";
 import { generateContentFromArticle } from "@/lib/content/summarizer";
-import { generateQuizQuestions } from "@/lib/content/quiz-generator";
+import { generateQuestionSets } from "@/lib/content/quiz-generator";
 import { fetchArticleText } from "@/lib/content/article-fetcher";
 import { istToday } from "@/lib/utils/date";
-import { getPublishQualityIssues } from "@/lib/content/quality";
+import {
+  getPublishQualityIssues,
+  getQuestionQualityWarnings,
+} from "@/lib/content/quality";
+import { QUESTION_VALIDATION_VERSION } from "@/lib/content/question-version";
 
 const parser = new Parser();
 const PIPELINE_CONCURRENCY = 3;
@@ -609,6 +613,15 @@ export async function runIngestPipeline(options: {
     const allItems = settled
       .flatMap((r) => (r.status === "fulfilled" ? r.value : []))
       .filter((i) => i.link);
+    const feedErrors = settled.flatMap((result, index) =>
+      result.status === "rejected"
+        ? [
+            `Feed fetch failed for ${FEEDS[index].source}: ${
+              result.reason instanceof Error ? result.reason.message : String(result.reason)
+            }`,
+          ]
+        : []
+    );
 
     // 2. Relevance + story clustering + soft topic balance.
     // This keeps legal/current-law important without letting court feeds
@@ -646,6 +659,7 @@ export async function runIngestPipeline(options: {
         dryRun: true,
         totalFetched: allItems.length,
         relevant: relevant.length,
+        errors: feedErrors,
         items: relevant.map((i) => ({
           title: i.title,
           link: i.link,
@@ -671,7 +685,7 @@ export async function runIngestPipeline(options: {
         autoPublished: 0,
         autoPublishSkipped: 0,
         questions: 0,
-        errors: [],
+        errors: feedErrors,
       };
     }
 
@@ -682,7 +696,8 @@ export async function runIngestPipeline(options: {
     let skippedAutoPublishCount = 0;
     let attemptedCount = 0;
     let candidateOffset = 0;
-    const errors: string[] = [];
+    let generatedQuestionCount = 0;
+    const errors: string[] = [...feedErrors];
 
     while (candidateOffset < relevant.length) {
       const completedCount = autoPublish ? approvedCount : savedCount;
@@ -735,33 +750,47 @@ export async function runIngestPipeline(options: {
             updated_at: now,
           };
 
-          const rawQs = await generateQuizQuestions(
+          const questionSets = await generateQuestionSets(
             content.title,
             content.summary,
             content.body,
             content.topic_tags[0],
-            content.difficulty,
-            4
+            content.difficulty
           );
 
-          const itemQuestions: Question[] = rawQs.map((rq) => ({
-            id: randomUUID(),
-            content_item_id: itemId,
-            prompt: rq.prompt,
-            options: rq.options,
-            correct_option: rq.correct_option,
-            explanation: rq.explanation,
-            topic: content.topic_tags[0],
-            difficulty: content.difficulty,
-            source_citation: feedItem.source,
-            status: "draft" as const,
-            created_at: now,
-          }));
+          const itemQuestions: Question[] = [
+            ...questionSets.dailyNews.map((question) => ({
+              question,
+              purpose: "daily_news" as const,
+            })),
+            ...questionSets.context.map((question) => ({
+              question,
+              purpose: "context" as const,
+            })),
+          ].map(({ question, purpose }) => ({
+              id: randomUUID(),
+              content_item_id: itemId,
+              prompt: question.prompt,
+              options: question.options,
+              correct_option: question.correct_option,
+              explanation: question.explanation,
+              topic: content.topic_tags[0],
+              difficulty: content.difficulty,
+              source_citation: feedItem.source,
+              purpose,
+              validation_version: QUESTION_VALIDATION_VERSION,
+              status: "draft" as const,
+              created_at: now,
+            }));
+
+          const safeQuestions = itemQuestions.filter(
+            (question) => getQuestionQualityWarnings(newItem, [question]).length === 0
+          );
 
           // Persist immediately so completed batch members survive a timeout.
           await upsertContentItems([newItem]);
-          if (itemQuestions.length > 0) await upsertQuestions(itemQuestions);
-          return { feedItem, newItem, itemQuestions };
+          if (safeQuestions.length > 0) await upsertQuestions(safeQuestions);
+          return { feedItem, newItem, itemQuestions: safeQuestions };
         })
       );
 
@@ -777,9 +806,12 @@ export async function runIngestPipeline(options: {
 
         savedCount++;
         const { newItem, itemQuestions } = result.value;
+        generatedQuestionCount += itemQuestions.length;
         if (!autoPublish) continue;
 
-        const issues = getPublishQualityIssues(newItem, itemQuestions);
+        const issues = getPublishQualityIssues(newItem, itemQuestions, {
+          requireContext: true,
+        });
         if (issues.length > 0) {
           skippedAutoPublishCount++;
           errors.push(
@@ -836,7 +868,7 @@ export async function runIngestPipeline(options: {
       generated: savedCount,
       autoPublished: approvedCount,
       autoPublishSkipped: skippedAutoPublishCount,
-      questions: 0, // counted per-item above; not tracked in aggregate return
+      questions: generatedQuestionCount,
       errors,
     };
   } catch (err) {

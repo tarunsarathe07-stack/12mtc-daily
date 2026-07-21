@@ -19,6 +19,7 @@ import {
   getContentForDate,
 } from "@/lib/content/unified";
 import { Markdown } from "@/components/content/markdown";
+import { ContextQuiz } from "@/components/content/context-quiz";
 import { istDateLabel, istToday } from "@/lib/utils/date";
 
 export const dynamic = "force-dynamic";
@@ -213,6 +214,8 @@ export default async function DailyExplainerPage({
           </section>
         )}
 
+        <ContextQuiz questions={questions} />
+
         {/* Sources — names only, no external links (retention) */}
         {item.source_urls.length > 0 && (
           <section>
@@ -243,17 +246,13 @@ export default async function DailyExplainerPage({
       {/* In-flow sticky action: stays useful without covering study content. */}
       <div className="sticky bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-30 px-4 pb-3 lg:bottom-4">
         <div className="mx-auto flex w-full max-w-xl gap-2 rounded-2xl border border-border/80 bg-background/95 p-2 shadow-xl shadow-ink/10 backdrop-blur-xl">
-          <Link
-            href={
-              questions.length > 0
-                ? `/battle/queue?mode=topic&topic=${item.topic_tags[0]}`
-                : "/battle"
-            }
+          <a
+            href={questions.length > 0 ? "#go-deeper-quiz" : "/battle"}
             className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-saffron py-3 text-sm font-black text-ink shadow-lg shadow-saffron/25 transition-colors hover:bg-saffron/90"
           >
             <Swords className="h-4 w-4" />
-            Start quiz
-          </Link>
+            {questions.length > 0 ? "Practice this card" : "Start quiz"}
+          </a>
           {nextItem ? (
             <Link
               href={`/daily/${nextItem.slug}`}

@@ -18,6 +18,7 @@ import * as data from "./data";
 import { shouldUseSupabaseStore, isMockMode, DAILY_TARGET } from "./config";
 import { istToday } from "@/lib/utils/date";
 import type { ContentItem, Question } from "@/lib/types/database";
+import { isStudentReadyContextQuestion } from "./question-version";
 
 /** Resolve the IST "news day" for an item (explicit or derived). */
 export function getContentDate(item: ContentItem): string {
@@ -125,18 +126,22 @@ export async function getContentBySlug(slug: string): Promise<ContentItem | unde
   return MOCK_CONTENT.find((c) => c.slug === slug && c.status === "published");
 }
 
-/** Approved questions for a given content item. */
+/** Approved broader-context questions shown inside a learning card. */
 export async function getQuestionsForContent(contentId: string): Promise<Question[]> {
   try {
     const storeQs = (await data.getQuestionsForContentItem(contentId)).filter(
-      (q) => q.status === "approved"
+      (q) =>
+        q.status === "approved" && isStudentReadyContextQuestion(q)
     );
     if (storeQs.length > 0) return storeQs;
   } catch {
     // fall through
   }
   if (shouldUseSupabaseStore()) return [];
-  return MOCK_QUESTIONS.filter((q) => q.content_item_id === contentId);
+  return MOCK_QUESTIONS.filter((q) => q.content_item_id === contentId).map((question) => ({
+    ...question,
+    purpose: "context" as const,
+  }));
 }
 
 /** All approved questions from the active source(s). */
@@ -163,42 +168,67 @@ export interface DailyQuestionResult {
 }
 
 /**
- * Battle questions — TODAY-FIRST policy.
- * Pull from today's approved current-affairs questions first; top up from
- * the wider approved pool if today has fewer than `count`. The fallback is
- * reported to admin via /api/content/daily-status, never surfaced as an
- * error in student UX.
+ * Daily battle questions — one direct-news question per published card.
+ * Context questions shown inside cards never enter this pool. If a card is
+ * missing a direct question, top up from other direct questions from today,
+ * then from the older direct-news archive as a final resilience fallback.
  */
 export async function getDailyQuestionsDetailed(
   count: number = DAILY_TARGET
 ): Promise<DailyQuestionResult> {
-  const all = await getAllApprovedQuestions();
+  const all = (await getAllApprovedQuestions()).filter(
+    (question) => (question.purpose ?? "daily_news") === "daily_news"
+  );
   const today = istToday();
 
-  // Resolve which content items belong to today
-  let todayItemIds = new Set<string>();
+  let todayItems: ContentItem[] = [];
   try {
-    const published = await getContentForDate(today);
-    todayItemIds = new Set(published.map((i) => i.id));
+    todayItems = await getContentForDate(today);
   } catch {
     // no published content available
   }
 
-  const todayQs = shuffleArray(all.filter((q) => q.content_item_id && todayItemIds.has(q.content_item_id)));
-  const olderQs = shuffleArray(all.filter((q) => !q.content_item_id || !todayItemIds.has(q.content_item_id)));
+  const todayItemIds = new Set(todayItems.map((item) => item.id));
+  const selectedIds = new Set<string>();
+  const onePerCard = todayItems.flatMap((item) => {
+    const question = shuffleArray(
+      all.filter((candidate) => candidate.content_item_id === item.id)
+    )[0];
+    if (!question) return [];
+    selectedIds.add(question.id);
+    return [question];
+  });
+  const remainingToday = shuffleArray(
+    all.filter(
+      (question) =>
+        question.content_item_id &&
+        todayItemIds.has(question.content_item_id) &&
+        !selectedIds.has(question.id)
+    )
+  );
+  const olderQuestions = shuffleArray(
+    all.filter(
+      (question) => !question.content_item_id || !todayItemIds.has(question.content_item_id)
+    )
+  );
 
-  const questions = [...todayQs.slice(0, count), ...olderQs].slice(0, count);
+  const todayQuestions = [...shuffleArray(onePerCard), ...remainingToday].slice(0, count);
+  const questions = [...todayQuestions, ...olderQuestions].slice(0, count);
   return {
     questions,
-    fromToday: Math.min(todayQs.length, count),
-    fallbackUsed: todayQs.length < count,
+    fromToday: todayQuestions.length,
+    fallbackUsed: todayQuestions.length < count,
   };
 }
 
-/** Shuffled questions by topic, from all sources. */
+/** Topic practice prioritises the broader context pool, then direct news. */
 export async function getQuestionsByTopic(topic: string, count: number = DAILY_TARGET): Promise<Question[]> {
   const all = (await getAllApprovedQuestions()).filter((q) => q.topic === topic);
-  return shuffleArray(all).slice(0, count);
+  const context = shuffleArray(all.filter((question) => question.purpose === "context"));
+  const directNews = shuffleArray(
+    all.filter((question) => (question.purpose ?? "daily_news") === "daily_news")
+  );
+  return [...context, ...directNews].slice(0, count);
 }
 
 /** Shuffled daily mix (today-first). */

@@ -42,6 +42,14 @@ function itemText(item: ContentItem) {
     .toLowerCase();
 }
 
+function exactLegalReferences(value: string) {
+  return [
+    ...value.matchAll(
+      /\b(?:article|section|entry)\s+\d+[a-z]?(?:\s*\(\s*\d+\s*\))?(?:\s*\(\s*[a-z]\s*\))?/gi
+    ),
+  ].map((match) => match[0].toLowerCase().replace(/\s+/g, ""));
+}
+
 function hasSource(item: ContentItem) {
   return (
     item.source_urls.some(Boolean) ||
@@ -84,10 +92,19 @@ export function getQuestionQualityWarnings(item: ContentItem, questions: Questio
     const unsupportedLegalTerms = OUTSIDE_LEGAL_MARKERS.filter(
       (term) => questionText.includes(term) && !passageText.includes(term),
     );
+    const passageReferences = new Set(exactLegalReferences(passageText));
+    const unsupportedExactReferences = exactLegalReferences(questionText).filter(
+      (reference) => !passageReferences.has(reference)
+    );
 
-    if (unsupportedLegalTerms.length > 0) {
+    if (unsupportedLegalTerms.length > 0 || unsupportedExactReferences.length > 0) {
       warnings.push(
-        `${label} may rely on outside legal knowledge: ${unsupportedLegalTerms.slice(0, 2).join(", ")}.`,
+        `${label} may rely on outside legal knowledge: ${[
+          ...unsupportedLegalTerms,
+          ...unsupportedExactReferences,
+        ]
+          .slice(0, 2)
+          .join(", ")}.`,
       );
     }
   });
@@ -95,7 +112,11 @@ export function getQuestionQualityWarnings(item: ContentItem, questions: Questio
   return warnings;
 }
 
-export function getPublishQualityIssues(item: ContentItem, questions: Question[]) {
+export function getPublishQualityIssues(
+  item: ContentItem,
+  questions: Question[],
+  options: { requireContext?: boolean } = {}
+) {
   const issues: string[] = [];
 
   if (!hasSource(item)) {
@@ -110,8 +131,19 @@ export function getPublishQualityIssues(item: ContentItem, questions: Question[]
     issues.push("Add a syllabus category in review notes.");
   }
 
-  if (questions.length === 0) {
-    issues.push("Add quiz questions before publishing.");
+  const dailyNewsQuestions = questions.filter(
+    (question) => (question.purpose ?? "daily_news") === "daily_news"
+  );
+  const contextQuestions = questions.filter(
+    (question) => question.purpose === "context"
+  );
+
+  if (dailyNewsQuestions.length === 0) {
+    issues.push("Add at least one direct daily-news question before publishing.");
+  }
+
+  if (options.requireContext && contextQuestions.length < 3) {
+    issues.push("Add at least three broader context questions before auto-publishing.");
   }
 
   return [...issues, ...getQuestionQualityWarnings(item, questions)];
