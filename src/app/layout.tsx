@@ -28,6 +28,13 @@ export const metadata: Metadata = {
   description:
     "12 shorts, 12 quiz questions, one daily battle. Master CLAT current affairs in 12 minutes a day. A 12 Minutes to CLAT product.",
   manifest: "/manifest.json",
+  icons: {
+    icon: [
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: "/icons/icon-192.png",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",

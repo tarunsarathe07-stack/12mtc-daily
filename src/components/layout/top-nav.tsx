@@ -7,7 +7,7 @@ import { Globe, Phone, MonitorPlay } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FunnelLink } from "@/components/funnel/funnel-link";
 import { tmcLink } from "@/lib/funnel/links";
-import { Crown } from "@/components/brand/crown";
+import { BrandMark } from "@/components/brand/brand-mark";
 
 const NAV = [
   { href: "/today", label: "Today" },
@@ -30,9 +30,7 @@ export function TopNav({ isAdmin = false }: { isAdmin?: boolean }) {
     <header className="sticky top-0 z-50 hidden border-b border-border bg-white lg:block">
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center gap-6 px-6 xl:px-8">
         <Link href="/today" className="flex shrink-0 items-center gap-2.5">
-          <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-saffron/20">
-            <Crown size={28} />
-          </span>
+          <BrandMark size={40} priority />
           <span className="leading-none">
             <span className="block text-[15px] font-bold text-foreground">12 Minutes Daily</span>
             <span className="block text-[10px] font-medium text-muted-foreground">

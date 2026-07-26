@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Flame } from "lucide-react";
-import { Crown } from "@/components/brand/crown";
+import { BrandMark } from "@/components/brand/brand-mark";
 
 interface TopBarProps {
   title?: string;
@@ -14,9 +14,7 @@ export function TopBar({ title, streak = 0 }: TopBarProps) {
     <header className="sticky top-0 z-40 border-b border-border bg-white lg:hidden">
       <div className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between px-4 sm:px-6">
         <Link href="/today" className="flex items-center gap-2.5" aria-label="Go to Today">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-saffron/20">
-            <Crown size={24} />
-          </span>
+          <BrandMark size={32} priority />
           <h1 className="text-base font-bold text-foreground">
             {title || "12 Minutes Daily"}
           </h1>

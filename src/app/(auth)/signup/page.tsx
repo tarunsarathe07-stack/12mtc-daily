@@ -5,7 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Swords } from "lucide-react";
-import { Crown } from "@/components/brand/crown";
+import { BrandMark } from "@/components/brand/brand-mark";
 
 const EXAM_YEARS = [2026, 2027, 2028, 2029];
 
@@ -79,9 +79,7 @@ export default function SignupPage() {
     <div className="flex min-h-dvh flex-col items-center justify-center bg-background px-4 py-8">
       <div className="w-full max-w-md rounded-xl border border-border bg-white p-6 shadow-sm sm:p-8">
         <div className="flex flex-col items-center gap-2">
-          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-saffron/20">
-            <Crown size={30} />
-          </div>
+          <BrandMark size={56} priority />
           <h1 className="text-2xl font-bold">Create your account</h1>
           <p className="text-sm text-muted-foreground">
             Save your streak, rating, and progress — free.

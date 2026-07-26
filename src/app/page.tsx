@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowRight, MonitorPlay, Phone } from "lucide-react";
-import { Crown } from "@/components/brand/crown";
+import { BrandMark } from "@/components/brand/brand-mark";
 import { Reveal, Stagger, StaggerItem } from "@/components/effects/reveal";
 import { RitualPreview } from "@/components/landing/ritual-preview";
 import { getBlogSource } from "@/lib/blog/source";
@@ -34,12 +34,15 @@ export default async function LandingPage() {
       <header className="sticky top-0 z-40 border-b border-border bg-white">
         <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
           <Link href="/" className="flex items-center gap-2.5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-saffron/20">
-              <Crown size={27} animateTips />
-            </span>
-            <span className="text-sm font-bold text-foreground sm:text-base">
-              <span className="sm:hidden">12 Minutes</span>
-              <span className="hidden sm:inline">12 Minutes Daily</span>
+            <BrandMark size={40} priority />
+            <span className="leading-none">
+              <span className="block text-sm font-bold text-foreground sm:text-base">
+                <span className="sm:hidden">12 Minutes</span>
+                <span className="hidden sm:inline">12 Minutes Daily</span>
+              </span>
+              <span className="mt-1 hidden text-[10px] font-medium text-muted-foreground sm:block">
+                by 12 Minutes to CLAT
+              </span>
             </span>
           </Link>
           <nav className="hidden items-center gap-1 md:flex">

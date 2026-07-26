@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Crown } from "@/components/brand/crown";
+import { BrandMark } from "@/components/brand/brand-mark";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -49,9 +49,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md rounded-xl border border-border bg-white p-6 shadow-sm sm:p-8">
         {/* Logo */}
         <div className="flex flex-col items-center gap-2">
-          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-saffron/20">
-            <Crown size={30} />
-          </div>
+          <BrandMark size={56} priority />
           <h1 className="text-2xl font-bold">Welcome back</h1>
           <p className="text-sm text-muted-foreground">
             CLAT current affairs in 12 minutes a day.

@@ -4,7 +4,7 @@ import { ArrowRight, BookOpen, Clock, GraduationCap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { getBlogSource } from "@/lib/blog/source";
-import { Crown } from "@/components/brand/crown";
+import { BrandMark } from "@/components/brand/brand-mark";
 
 export const dynamic = "force-dynamic";
 
@@ -30,9 +30,7 @@ export default async function BlogIndexPage() {
       <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-xl">
         <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
           <Link href="/" className="flex items-center gap-2">
-            <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-primary/10">
-              <Crown size={27} />
-            </span>
+            <BrandMark size={36} priority />
             <span className="text-sm font-black">12 Minutes Daily — Guides</span>
           </Link>
           <Link href="/today" className="rounded-xl bg-saffron px-4 py-2 text-sm font-black text-ink transition-all hover:-translate-y-0.5">
@@ -94,9 +92,7 @@ export default async function BlogIndexPage() {
             <div className="flex min-h-[260px] flex-col justify-between bg-primary p-6 text-white sm:p-8">
               <div>
                 <p className="editorial-kicker text-white/45">12 Minutes to CLAT</p>
-                <div className="mt-3 flex h-20 w-20 items-center justify-center rounded-[1.65rem] bg-white text-primary">
-                  <Crown size={58} animateTips />
-                </div>
+                <BrandMark size={80} className="mt-3 border border-white/15" />
               </div>
               <p className="max-w-sm text-sm leading-7 text-white/70">
                 Strategy is easier to follow when it is practical. These guides help you turn current affairs, mocks, and revision into a daily system.
