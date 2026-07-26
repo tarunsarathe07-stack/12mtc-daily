@@ -33,7 +33,7 @@ export function ShortCard({ item, className, bookmarked, onBookmark }: ShortCard
     : [];
 
   return (
-    <article className={cn("stitch-card-strong flex h-full flex-col overflow-hidden rounded-[2.1rem] bg-white", className)}>
+    <article className={cn("stitch-card-strong flex h-full flex-col overflow-hidden rounded-xl bg-white", className)}>
       <div className="stitch-image-mask relative h-[18dvh] min-h-[130px] max-h-[190px] shrink-0 bg-primary/8">
         {item.image_url ? (
           <Image
@@ -48,17 +48,17 @@ export function ShortCard({ item, className, bookmarked, onBookmark }: ShortCard
           <TopicArt topic={primaryTopic} slot={item.daily_slot} className="h-full rounded-none" />
         )}
         <div className="absolute inset-x-0 top-0 flex items-start justify-between p-4">
-          <Badge className="rounded-full border-0 bg-white/92 px-3 py-1 text-[11px] font-black capitalize text-primary shadow-sm backdrop-blur">
+          <Badge className="rounded-md border border-border bg-white px-2.5 py-1 text-xs font-semibold capitalize text-primary shadow-sm">
             {primaryTopic.replace(/-/g, " ")}
           </Badge>
-          <button onClick={onBookmark} aria-label={bookmarked ? "Remove bookmark" : "Bookmark"} className={cn("rounded-full bg-white/92 p-2.5 text-primary shadow-sm backdrop-blur transition hover:scale-105", bookmarked && "bg-saffron text-ink")}>
+          <button onClick={onBookmark} aria-label={bookmarked ? "Remove bookmark" : "Bookmark"} className={cn("rounded-lg border border-border bg-white p-2.5 text-primary shadow-sm transition hover:bg-primary/5", bookmarked && "border-primary bg-primary text-white")}>
             <Bookmark className={cn("h-4 w-4", bookmarked && "fill-current")} />
           </button>
         </div>
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col px-5 py-5 sm:px-7 sm:py-6">
-        <div className="flex flex-wrap items-center gap-2 text-[11px] font-black uppercase tracking-[0.13em] text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-muted-foreground">
           <span className="text-primary">{sourceName}</span>
           <span>•</span>
           <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5 text-saffron" />{displayDate}</span>
@@ -67,11 +67,11 @@ export function ShortCard({ item, className, bookmarked, onBookmark }: ShortCard
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto py-5 [scrollbar-width:thin]">
-          <h2 className="display-title text-[2rem] leading-[1.02] sm:text-[2.45rem]">
+          <h2 className="text-2xl font-bold leading-snug sm:text-3xl">
             {item.title}
           </h2>
 
-          <div className="mt-5 rounded-[1.45rem] border-l-4 border-saffron bg-[#f5f2fb] px-4 py-4 text-[15px] font-medium leading-7 text-foreground/82">
+          <div className="mt-4 rounded-lg border-l-4 border-primary bg-primary/5 px-4 py-3.5 text-[15px] font-medium leading-7 text-foreground/85">
             {stripMarkdown(item.summary)}
           </div>
 
@@ -84,8 +84,8 @@ export function ShortCard({ item, className, bookmarked, onBookmark }: ShortCard
           ) : null}
 
           {item.why_it_matters && (
-            <details className="group mt-5 rounded-full border border-primary/10 bg-[#fbf9ff] px-4 py-3 open:rounded-[1.35rem]">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-xs font-black text-primary marker:hidden">
+            <details className="group mt-5 rounded-lg border border-border bg-muted/35 px-4 py-3">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-xs font-bold text-primary marker:hidden">
                 <span className="inline-flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-saffron" />Why this matters for CLAT</span>
                 <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
               </summary>
@@ -95,10 +95,10 @@ export function ShortCard({ item, className, bookmarked, onBookmark }: ShortCard
         </div>
 
         <div className="flex items-center justify-between border-t border-border/70 pt-4">
-          <span className="rounded-full bg-primary px-3 py-1.5 text-xs font-black text-white">{item.daily_slot ?? "1"}/12</span>
+          <span className="rounded-md bg-primary/10 px-3 py-1.5 text-xs font-bold text-primary">{item.daily_slot ?? "1"}/12</span>
           <div className="flex items-center gap-2">
-            <button className="rounded-full p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground" aria-label="Share"><Share2 className="h-4 w-4" /></button>
-            <Link href={`/daily/${item.slug}`} className="inline-flex items-center gap-1 rounded-full bg-saffron px-4 py-2 text-xs font-black text-ink shadow-sm shadow-saffron/20 transition hover:-translate-y-0.5">
+            <button className="rounded-lg p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground" aria-label="Share"><Share2 className="h-4 w-4" /></button>
+            <Link href={`/daily/${item.slug}`} className="inline-flex items-center gap-1 rounded-lg bg-primary px-4 py-2 text-xs font-bold text-white shadow-[0_2px_0_#236448] transition hover:-translate-y-0.5">
               Full context <ChevronRight className="h-3.5 w-3.5" />
             </Link>
           </div>

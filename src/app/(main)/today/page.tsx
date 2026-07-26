@@ -102,10 +102,10 @@ export default function TodayPage() {
             <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
               <div>
                 <p className="editorial-kicker text-primary">{todayLabel} · Daily loop</p>
-                <h1 className="display-title mt-3 text-4xl sm:text-5xl lg:text-6xl">Build today&apos;s momentum</h1>
+                <h1 className="display-title mt-2 text-3xl sm:text-4xl">Build today&apos;s momentum</h1>
                 <p className="mt-3 max-w-xl text-base leading-7 text-muted-foreground">One mission: finish the 12, take the quiz, revise what needs work.</p>
               </div>
-              <div className="stitch-pill grid grid-cols-3 gap-1 p-1.5 md:min-w-[340px]">
+              <div className="grid grid-cols-3 gap-1 rounded-lg border border-border bg-white p-1.5 md:min-w-[320px]">
                 <MiniStat value={`${readToday}/12`} label="read" />
                 <MiniStat value={`${progress.streak}`} label="streak" />
                 <MiniStat value={`${progress.rating}`} label="rating" />
@@ -131,15 +131,16 @@ export default function TodayPage() {
             </div>
           </section>
 
-          <section className="stitch-saffron-panel mb-10 overflow-hidden rounded-[2.4rem] p-6 text-ink sm:p-9">
-            <div className="grid gap-6 md:grid-cols-[1fr_auto] md:items-center">
+          <section className="stitch-saffron-panel mb-8 overflow-hidden rounded-lg p-5 sm:p-7">
+            <div className="grid gap-5 md:grid-cols-[1fr_auto] md:items-center">
               <div>
-                <p className="text-[11px] font-black uppercase tracking-[0.16em] opacity-65">Next up</p>
-                <h2 className="display-title mt-3 text-4xl sm:text-5xl">{isDone ? "Quiz is ready" : "Read today's 12"}</h2>
-                <p className="mt-3 max-w-lg text-base font-medium leading-7 opacity-75">{nextAction.helper}</p>
+                <p className="text-xs font-bold text-primary">Next up</p>
+                <h2 className="mt-2 text-2xl font-bold sm:text-3xl">{isDone ? "Quiz is ready" : "Read today's 12"}</h2>
+                <p className="mt-2 max-w-lg text-sm leading-6 text-muted-foreground">{nextAction.helper}</p>
               </div>
-              <Link href={nextAction.href} className="group flex h-20 w-20 items-center justify-center rounded-full bg-white/45 text-ink shadow-inner transition-transform hover:scale-105 md:h-24 md:w-24" aria-label={nextAction.label}>
-                <ArrowRight className="h-9 w-9 transition-transform group-hover:translate-x-1" />
+              <Link href={nextAction.href} className="group inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-primary px-5 text-sm font-bold text-white shadow-[0_3px_0_#236448] transition-transform hover:-translate-y-0.5" aria-label={nextAction.label}>
+                {nextAction.label}
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
             </div>
           </section>
@@ -150,41 +151,41 @@ export default function TodayPage() {
           </div>
 
           <div className="grid gap-6 lg:grid-cols-[0.9fr_1.25fr]">
-            <section className="stitch-card rounded-[2rem] p-5 sm:p-6">
+            <section className="stitch-card rounded-lg p-5 sm:p-6">
               <div className="flex items-center justify-between border-b border-border pb-4">
-                <h2 className="flex items-center gap-2 text-2xl font-black tracking-tight"><Target className="h-5 w-5 text-primary" /> Weak topic drills</h2>
-                <span className="rounded-full bg-saffron-soft px-3 py-1 text-xs font-black text-[#8a5200]">personal</span>
+                <h2 className="flex items-center gap-2 text-lg font-bold"><Target className="h-5 w-5 text-primary" /> Weak topic drills</h2>
+                <span className="rounded-md bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">Personal</span>
               </div>
               <div className="mt-4 space-y-4">
                 {!progressLoaded ? Array.from({ length: 2 }).map((_, index) => <div key={index} className="h-16 animate-pulse rounded-2xl bg-muted" />) : weakTopics.length === 0 ? (
                   <p className="py-4 text-sm leading-6 text-muted-foreground">Take one quiz and weak-topic drills will appear here.</p>
                 ) : weakTopics.map((topic) => (
-                  <Link key={topic.topic} href={`/battle/queue?mode=topic&topic=${topic.topic}`} className="group block rounded-2xl px-1 py-2">
+                  <Link key={topic.topic} href={`/battle/queue?mode=topic&topic=${topic.topic}`} className="group block rounded-lg px-2 py-2 hover:bg-muted/60">
                     <div className="flex items-center justify-between gap-4">
                       <div className="min-w-0 flex-1">
-                        <p className="font-black capitalize tracking-tight">{topic.topic}</p>
+                        <p className="font-bold capitalize">{topic.topic}</p>
                         <div className="mt-2 h-2 overflow-hidden rounded-full bg-primary/10"><div className="h-full rounded-full bg-primary" style={{ width: `${Math.max(4, topic.mastery_pct)}%` }} /></div>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className="rounded-full bg-saffron/15 px-3 py-1 text-xs font-black text-[#8a5200]">{topic.mastery_pct}%</span>
+                        <span className="rounded-md bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary">{topic.mastery_pct}%</span>
                         <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1" />
                       </div>
                     </div>
                   </Link>
                 ))}
-                <Link href="/battle" className="mt-4 flex h-11 items-center justify-center rounded-full border border-primary px-4 text-sm font-black text-primary transition hover:bg-primary hover:text-white">Start targeted session</Link>
+                <Link href="/battle" className="mt-4 flex h-11 items-center justify-center rounded-lg border border-primary px-4 text-sm font-bold text-primary transition hover:bg-primary hover:text-white">Start targeted session</Link>
               </div>
             </section>
 
-            <section className="stitch-card rounded-[2rem] p-5 sm:p-6">
+            <section className="stitch-card rounded-lg p-5 sm:p-6">
               <div className="flex items-center justify-between border-b border-border pb-4">
-                <h2 className="flex items-center gap-2 text-2xl font-black tracking-tight"><Zap className="h-5 w-5 text-primary" /> Live source feed</h2>
-                <span className="stitch-pill px-3 py-1 text-xs font-bold text-muted-foreground">updated just now</span>
+                <h2 className="flex items-center gap-2 text-lg font-bold"><Zap className="h-5 w-5 text-primary" /> Today&apos;s source feed</h2>
+                <span className="rounded-md bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground">Updated</span>
               </div>
               <div className="mt-4 space-y-4">
                 {visibleQueue.slice(0, 3).map((item) => (
-                  <Link key={item.id} href={`/daily/${item.slug}`} className="group grid grid-cols-[76px_1fr] gap-4 rounded-2xl p-1.5 transition hover:bg-muted/60">
-                    <div className="h-20 overflow-hidden rounded-2xl bg-primary/10">
+                  <Link key={item.id} href={`/daily/${item.slug}`} className="group grid grid-cols-[76px_1fr] gap-4 rounded-lg p-1.5 transition hover:bg-muted/60">
+                    <div className="h-20 overflow-hidden rounded-lg bg-primary/10">
                       {item.image_url ? (
                         <Image
                           src={item.image_url}
@@ -198,8 +199,8 @@ export default function TodayPage() {
                       ) : <div className="flex h-full w-full items-center justify-center bg-[linear-gradient(135deg,#ececf8,#fff0d3)]"><BookOpen className="h-6 w-6 text-primary" /></div>}
                     </div>
                     <div className="min-w-0 py-1">
-                      <p className="text-[11px] font-black uppercase tracking-[0.12em] text-primary">{sourceName(item)} <span className="text-muted-foreground">· {item.is_demo ? "Demo" : "Reviewed"}</span></p>
-                      <p className="mt-1 line-clamp-2 text-base font-bold leading-snug tracking-tight">{item.title}</p>
+                      <p className="text-xs font-semibold text-primary">{sourceName(item)} <span className="text-muted-foreground">· {item.is_demo ? "Demo" : "Reviewed"}</span></p>
+                      <p className="mt-1 line-clamp-2 text-base font-semibold leading-snug">{item.title}</p>
                     </div>
                   </Link>
                 ))}
@@ -208,14 +209,14 @@ export default function TodayPage() {
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-3">
-            <Link href="/shorts?day=saved" className="stitch-card flex items-center gap-3 rounded-[1.5rem] p-4">
-              <Bookmark className="h-5 w-5 text-saffron" /><span className="font-black">Saved cards</span><span className="ml-auto text-sm text-muted-foreground">{savedItems.length}</span>
+            <Link href="/shorts?day=saved" className="stitch-card flex items-center gap-3 rounded-lg p-4 transition hover:border-primary/25">
+              <Bookmark className="h-5 w-5 text-primary" /><span className="font-semibold">Saved cards</span><span className="ml-auto text-sm text-muted-foreground">{savedItems.length}</span>
             </Link>
-            <Link href="/shorts?day=yesterday" className="stitch-card flex items-center gap-3 rounded-[1.5rem] p-4">
-              <BookOpen className="h-5 w-5 text-primary" /><span className="font-black">Revise yesterday</span><ArrowRight className="ml-auto h-4 w-4" />
+            <Link href="/shorts?day=yesterday" className="stitch-card flex items-center gap-3 rounded-lg p-4 transition hover:border-primary/25">
+              <BookOpen className="h-5 w-5 text-primary" /><span className="font-semibold">Revise yesterday</span><ArrowRight className="ml-auto h-4 w-4" />
             </Link>
-            <Link href="/battle" className="stitch-card flex items-center gap-3 rounded-[1.5rem] p-4">
-              <Swords className="h-5 w-5 text-saffron" /><span className="font-black">Quiz battle</span><ArrowRight className="ml-auto h-4 w-4" />
+            <Link href="/battle" className="stitch-card flex items-center gap-3 rounded-lg p-4 transition hover:border-primary/25">
+              <Swords className="h-5 w-5 text-[#2f6fbd]" /><span className="font-semibold">Quiz battle</span><ArrowRight className="ml-auto h-4 w-4" />
             </Link>
           </div>
         </div>
@@ -226,9 +227,9 @@ export default function TodayPage() {
 
 function MiniStat({ value, label }: { value: string; label: string }) {
   return (
-    <div className="rounded-full px-4 py-2 text-center">
-      <p className="tabular-heading text-xl font-black text-primary">{value}</p>
-      <p className="text-[9px] font-black uppercase tracking-[0.15em] text-muted-foreground">{label}</p>
+    <div className="rounded-md px-4 py-2 text-center">
+      <p className="tabular-heading text-lg font-bold text-primary">{value}</p>
+      <p className="text-xs font-medium text-muted-foreground">{label}</p>
     </div>
   );
 }

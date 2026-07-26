@@ -242,11 +242,11 @@ function ShortsPageContent() {
             ))}
           </div>
           <div className="hidden lg:block" />
-          <div className="hidden rounded-[1.35rem] bg-brand-gradient opacity-80 lg:row-span-2 lg:block" />
+          <div className="hidden rounded-xl border border-border bg-primary/8 lg:row-span-2 lg:block" />
           <div className="min-h-0 lg:col-start-2">
             <CardSkeleton />
           </div>
-          <div className="hidden rounded-[1.35rem] border border-primary/10 bg-card/82 p-4 lg:block">
+          <div className="hidden rounded-xl border border-border bg-card p-4 lg:block">
             <div className="space-y-3">
               <div className="h-3 w-20 animate-pulse rounded bg-muted" />
               <div className="h-5 w-4/5 animate-pulse rounded bg-muted" />
@@ -283,7 +283,7 @@ function ShortsPageContent() {
         <div className="fixed inset-x-0 bottom-20 z-30 px-4">
           <Link
             href="/battle/queue?mode=daily"
-            className="mx-auto flex w-full max-w-md items-center justify-center gap-2 rounded-xl bg-saffron py-3 text-sm font-black text-ink shadow-lg shadow-saffron/25 transition-colors hover:bg-saffron/90"
+            className="mx-auto flex w-full max-w-md items-center justify-center gap-2 rounded-lg bg-primary py-3 text-sm font-bold text-white shadow-[0_3px_0_#236448] transition-colors hover:bg-primary/90"
           >
             <Swords className="h-4 w-4" />
             Done reading? Take today&apos;s quiz

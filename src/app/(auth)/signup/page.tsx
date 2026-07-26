@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Swords } from "lucide-react";
+import { Crown } from "@/components/brand/crown";
 
 const EXAM_YEARS = [2026, 2027, 2028, 2029];
 
@@ -75,19 +76,19 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center px-4">
-      <div className="w-full max-w-sm space-y-6">
+    <div className="flex min-h-dvh flex-col items-center justify-center bg-background px-4 py-8">
+      <div className="w-full max-w-md rounded-xl border border-border bg-white p-6 shadow-sm sm:p-8">
         <div className="flex flex-col items-center gap-2">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-xl font-black text-primary-foreground">
-            12
+          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-saffron/20">
+            <Crown size={30} />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">Join 12 Minutes Daily</h1>
+          <h1 className="text-2xl font-bold">Create your account</h1>
           <p className="text-sm text-muted-foreground">
             Save your streak, rating, and progress — free.
           </p>
         </div>
 
-        <form onSubmit={handleSignup} className="space-y-4">
+        <form onSubmit={handleSignup} className="mt-7 space-y-4">
           <div className="space-y-2">
             <label htmlFor="name" className="text-sm font-medium">
               Display Name
@@ -155,7 +156,7 @@ export default function SignupPage() {
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
 
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button type="submit" className="h-11 w-full font-bold shadow-[0_3px_0_#236448]" disabled={loading}>
             {loading ? "Creating account..." : "Create Account"}
           </Button>
           <p className="text-center text-xs leading-5 text-muted-foreground">
@@ -167,7 +168,7 @@ export default function SignupPage() {
           </p>
         </form>
 
-        <div className="relative">
+        <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">
             <span className="w-full border-t" />
           </div>
@@ -176,11 +177,11 @@ export default function SignupPage() {
           </div>
         </div>
 
-        <Button variant="outline" className="w-full" onClick={handleGoogleSignup}>
+        <Button variant="outline" className="h-11 w-full font-semibold" onClick={handleGoogleSignup}>
           Continue with Google
         </Button>
 
-        <p className="text-center text-sm text-muted-foreground">
+        <p className="mt-6 text-center text-sm text-muted-foreground">
           Already have an account?{" "}
           <Link href="/login" className="font-medium text-primary underline-offset-4 hover:underline">
             Sign in

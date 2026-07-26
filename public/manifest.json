@@ -4,8 +4,8 @@
   "description": "CLAT current affairs in 12 minutes a day — 12 shorts, 12 quiz questions, daily battles. A 12 Minutes to CLAT product.",
   "start_url": "/today",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#1a1a2e",
+  "background_color": "#f7f9fb",
+  "theme_color": "#2f7d5c",
   "orientation": "portrait",
   "icons": [
     {

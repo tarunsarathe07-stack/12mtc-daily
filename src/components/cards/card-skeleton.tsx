@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function CardSkeleton() {
   return (
-    <div className="paper-panel premium-outline flex h-full flex-col overflow-hidden rounded-[2rem] border border-primary/10 bg-card">
+    <div className="paper-panel premium-outline flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card">
       <div className="h-36 animate-pulse bg-primary/12 sm:h-40 lg:h-44" />
       <div className="flex flex-1 flex-col justify-between p-5">
         <div className="flex gap-2">

@@ -27,15 +27,15 @@ export function TopNav({ isAdmin = false }: { isAdmin?: boolean }) {
   if (isActiveQuiz) return null;
 
   return (
-    <header className="sticky top-0 z-50 hidden border-b border-primary/10 bg-card/88 backdrop-blur-xl lg:block">
+    <header className="sticky top-0 z-50 hidden border-b border-border bg-white lg:block">
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center gap-6 px-6 xl:px-8">
         <Link href="/today" className="flex shrink-0 items-center gap-2.5">
-          <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-saffron/18 shadow-sm shadow-saffron/10">
+          <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-saffron/20">
             <Crown size={28} />
           </span>
           <span className="leading-none">
-            <span className="display-title block text-[15px] text-foreground">12 Minutes Daily</span>
-            <span className="block text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+            <span className="block text-[15px] font-bold text-foreground">12 Minutes Daily</span>
+            <span className="block text-[10px] font-medium text-muted-foreground">
               by 12 Minutes to CLAT
             </span>
           </span>
@@ -49,14 +49,14 @@ export function TopNav({ isAdmin = false }: { isAdmin?: boolean }) {
                 key={href}
                 href={href}
                 className={cn(
-                  "relative rounded-full px-3.5 py-2 text-sm font-bold transition-colors",
-                  isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                  "relative rounded-lg px-3.5 py-2 text-sm font-semibold transition-colors",
+                  isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 )}
               >
                 {isActive && (
                   <motion.span
                     layoutId="topnav-active"
-                    className="absolute inset-0 rounded-full bg-primary/10 ring-1 ring-primary/10"
+                    className="absolute inset-0 rounded-lg bg-primary/10"
                     transition={{ type: "spring", stiffness: 400, damping: 34 }}
                   />
                 )}
@@ -68,7 +68,7 @@ export function TopNav({ isAdmin = false }: { isAdmin?: boolean }) {
             <Link
               href="/admin"
               className={cn(
-                "relative rounded-full px-3.5 py-2 text-sm font-bold transition-colors",
+                "relative rounded-lg px-3.5 py-2 text-sm font-semibold transition-colors",
                 pathname.startsWith("/admin")
                   ? "text-primary"
                   : "text-muted-foreground hover:text-foreground"
@@ -77,7 +77,7 @@ export function TopNav({ isAdmin = false }: { isAdmin?: boolean }) {
               {pathname.startsWith("/admin") && (
                 <motion.span
                   layoutId="topnav-active"
-                  className="absolute inset-0 rounded-full bg-primary/10 ring-1 ring-primary/10"
+                  className="absolute inset-0 rounded-lg bg-primary/10"
                   transition={{ type: "spring", stiffness: 400, damping: 34 }}
                 />
               )}

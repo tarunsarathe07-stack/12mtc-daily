@@ -95,7 +95,7 @@ export default function ProfilePage() {
       <TopBar title="Profile" streak={user.streak_current} />
       <div className="mx-auto max-w-lg space-y-6 px-4 py-4 md:max-w-2xl lg:max-w-3xl lg:py-6">
         {/* Profile Header */}
-        <div className="soft-card flex items-center gap-4 rounded-[1.5rem] p-4">
+        <div className="soft-card flex items-center gap-4 rounded-xl p-4">
           <Avatar className="h-16 w-16">
             <AvatarFallback className="bg-primary text-xl font-bold text-white">
               {user.display_name.charAt(0).toUpperCase()}
@@ -111,7 +111,7 @@ export default function ProfilePage() {
 
         {/* XP Progress to next league */}
         {nextThreshold && (
-          <Card className="soft-card rounded-[1.5rem] border-0">
+          <Card className="soft-card rounded-xl">
             <CardContent className="p-4">
               <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
                 <span>{leagueInfo.emoji} {leagueInfo.label}</span>
@@ -142,7 +142,7 @@ export default function ProfilePage() {
         {/* Stats Grid */}
         <div className="grid grid-cols-4 gap-3">
           {stats.map(({ label, value, icon: Icon, color }) => (
-            <Card key={label} className="soft-card rounded-[1.35rem] border-0">
+            <Card key={label} className="soft-card rounded-xl">
               <CardContent className="flex flex-col items-center gap-1 p-3">
                 <Icon className={`h-4 w-4 ${color}`} />
                 <span className="text-lg font-bold tabular-nums">{value}</span>
@@ -166,10 +166,10 @@ export default function ProfilePage() {
                 <Link
                   key={m.topic}
                   href={`/battle/queue?mode=topic&topic=${m.topic}`}
-                  className="soft-card soft-card-hover block rounded-2xl px-4 py-3"
+                  className="soft-card soft-card-hover block rounded-xl px-4 py-3"
                 >
                   <div className="mb-2 flex items-center justify-between gap-3">
-                    <span className="text-sm font-black capitalize text-foreground">
+                      <span className="text-sm font-bold capitalize text-foreground">
                       {m.topic}
                     </span>
                     <span className="text-xs font-bold tabular-nums text-muted-foreground">
@@ -196,7 +196,7 @@ export default function ProfilePage() {
             <Swords className="h-4 w-4 text-primary" />
             Battle Summary
           </h3>
-          <Card className="soft-card rounded-[1.5rem] border-0">
+          <Card className="soft-card rounded-xl">
             <CardContent className="p-4">
               <div className="grid grid-cols-3 gap-4 text-center">
                 <div>
@@ -222,7 +222,7 @@ export default function ProfilePage() {
 
         {/* Streak info */}
         <section>
-          <Card className="soft-card rounded-[1.5rem] border-0 bg-saffron-soft">
+          <Card className="soft-card rounded-xl border-saffron/25 bg-saffron-soft">
             <CardContent className="p-4 flex items-center gap-4">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-saffron-soft">
                 <Flame className="h-6 w-6 text-saffron" />
@@ -245,7 +245,7 @@ export default function ProfilePage() {
             <Flame className="h-4 w-4 text-saffron" />
             Streak calendar
           </h3>
-          <Card className="soft-card rounded-[1.5rem] border-0">
+          <Card className="soft-card rounded-xl">
             <CardContent className="p-4">
               <div className="grid grid-cols-7 gap-1.5">
                 {calendarDays.map(({ date, label }) => {
@@ -282,7 +282,7 @@ export default function ProfilePage() {
               Demo
             </Badge>
           </h3>
-          <Card className="soft-card rounded-[1.5rem] border-0">
+          <Card className="soft-card rounded-xl">
             <CardContent className="divide-y divide-border p-0">
               {leaderboard.map((row, i) => (
                 <div
@@ -325,10 +325,10 @@ export default function ProfilePage() {
           <FunnelLink
             href={tmcLink("profile-prep-plan", "prep-plan")}
             label={CTA_LABELS.prepPlan}
-            className="block rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10 p-4 transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/10"
+            className="block rounded-xl border border-primary/20 bg-primary/5 p-4 transition-all hover:-translate-y-0.5 hover:border-primary/35"
           >
             <div className="flex items-center gap-3">
-              <div className="bg-brand-gradient flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-white">
                 <GraduationCap className="h-5 w-5" />
               </div>
               <div className="flex-1">
@@ -343,9 +343,9 @@ export default function ProfilePage() {
           <FunnelLink
             href={tmcLink("profile-counselling", "counselling-call")}
             label={CTA_LABELS.counselling}
-            className="flex w-full items-center gap-3 rounded-2xl border border-border p-4 text-left transition-all hover:-translate-y-0.5 hover:bg-muted"
+            className="flex w-full items-center gap-3 rounded-xl border border-border bg-white p-4 text-left transition-all hover:-translate-y-0.5 hover:border-primary/25"
           >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
               <Phone className="h-5 w-5" />
             </div>
             <div className="flex-1">

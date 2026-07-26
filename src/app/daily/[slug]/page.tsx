@@ -248,7 +248,7 @@ export default async function DailyExplainerPage({
         <div className="mx-auto flex w-full max-w-xl gap-2 rounded-2xl border border-border/80 bg-background/95 p-2 shadow-xl shadow-ink/10 backdrop-blur-xl">
           <a
             href={questions.length > 0 ? "#go-deeper-quiz" : "/battle"}
-            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-saffron py-3 text-sm font-black text-ink shadow-lg shadow-saffron/25 transition-colors hover:bg-saffron/90"
+            className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary py-3 text-sm font-bold text-white shadow-[0_3px_0_#236448] transition-colors hover:bg-primary/90"
           >
             <Swords className="h-4 w-4" />
             {questions.length > 0 ? "Practice this card" : "Start quiz"}

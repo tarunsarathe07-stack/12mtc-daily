@@ -45,7 +45,7 @@ export default async function BlogIndexPage() {
         <section className="grid gap-8 border-b border-border pb-10 lg:grid-cols-[1fr_360px] lg:items-end">
           <div className="max-w-3xl">
             <p className="editorial-kicker text-primary">CLAT strategy library</p>
-            <h1 className="font-display mt-3 text-4xl font-semibold leading-[1.02] tracking-tight sm:text-5xl lg:text-6xl">
+            <h1 className="mt-2 text-3xl font-bold leading-tight sm:text-4xl">
               Guides that make the 12-minute habit sharper.
             </h1>
             <p className="mt-4 max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg">

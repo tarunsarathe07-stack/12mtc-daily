@@ -24,15 +24,15 @@ export default function BattlePage() {
       <TopBar title="Battle" streak={MOCK_USER.streak_current} />
       <div className="mx-auto max-w-lg space-y-7 px-4 py-5 md:max-w-2xl lg:max-w-4xl lg:py-8">
         {/* Daily Battle */}
-        <Card className="soft-card overflow-hidden rounded-[1.75rem] border-0">
+        <Card className="soft-card overflow-hidden rounded-xl">
           <CardContent className="p-0">
-            <div className="bg-gradient-to-br from-primary/10 via-card to-saffron/10 p-5 space-y-4">
+            <div className="space-y-4 p-5">
               <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/15">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                   <Swords className="h-6 w-6" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-black">Today&apos;s quiz battle</h2>
+                  <h2 className="text-lg font-bold">Today&apos;s quiz battle</h2>
                   <p className="text-sm text-muted-foreground">
                     12 questions from today&apos;s current affairs
                   </p>
@@ -47,7 +47,7 @@ export default function BattlePage() {
                 </Badge>
               </div>
               <Link href="/battle/queue?mode=daily">
-                <Button className="mt-2 w-full rounded-full bg-saffron text-ink shadow-lg shadow-saffron/20 hover:bg-saffron/90" size="lg">
+                <Button className="mt-2 h-11 w-full rounded-lg bg-primary font-bold text-white shadow-[0_3px_0_#236448] hover:bg-primary/90" size="lg">
                   Start quiz battle
                 </Button>
               </Link>
@@ -57,13 +57,13 @@ export default function BattlePage() {
 
         {/* Topic Duels */}
         <div>
-          <div className="mb-3 flex items-end justify-between gap-4"><div><p className="editorial-kicker text-primary">Practice by weakness</p><h3 className="mt-1 text-xl font-black tracking-tight">Topic duels</h3></div><span className="text-xs font-semibold text-muted-foreground">speed breaks ties only</span></div>
+          <div className="mb-3 flex items-end justify-between gap-4"><div><p className="editorial-kicker text-primary">Practice by weakness</p><h3 className="mt-1 text-xl font-bold">Topic practice</h3></div><span className="text-xs font-medium text-muted-foreground">Speed breaks ties</span></div>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
             {topicMeta.map(({ id, label, icon: Icon, color }) => {
               const mastery = MOCK_MASTERY.find((m) => m.topic === id)?.mastery_pct || 0;
               return (
                 <Link key={id} href={`/battle/queue?mode=topic&topic=${id}`}>
-                  <Card className="soft-card h-full cursor-pointer rounded-[1.35rem] border-0 transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/10">
+                  <Card className="soft-card h-full cursor-pointer rounded-xl transition-all hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-md">
                     <CardContent className="p-4 space-y-2">
                       <div className={cn("flex h-10 w-10 items-center justify-center rounded-lg", color)}>
                         <Icon className="h-5 w-5" />

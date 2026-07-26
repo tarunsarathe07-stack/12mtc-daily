@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Crown } from "@/components/brand/crown";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -44,14 +45,14 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center px-4">
-      <div className="w-full max-w-sm space-y-6">
+    <div className="flex min-h-dvh flex-col items-center justify-center bg-background px-4 py-8">
+      <div className="w-full max-w-md rounded-xl border border-border bg-white p-6 shadow-sm sm:p-8">
         {/* Logo */}
         <div className="flex flex-col items-center gap-2">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-xl font-black text-primary-foreground">
-            12
+          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-saffron/20">
+            <Crown size={30} />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">12 Minutes Daily</h1>
+          <h1 className="text-2xl font-bold">Welcome back</h1>
           <p className="text-sm text-muted-foreground">
             CLAT current affairs in 12 minutes a day.
           </p>
@@ -61,7 +62,7 @@ export default function LoginPage() {
         </div>
 
         {/* Login Form */}
-        <form onSubmit={handleLogin} className="space-y-4">
+        <form onSubmit={handleLogin} className="mt-7 space-y-4">
           <div className="space-y-2">
             <label htmlFor="email" className="text-sm font-medium">
               Email
@@ -100,13 +101,13 @@ export default function LoginPage() {
             <p role="alert" className="text-sm text-destructive">{error}</p>
           )}
 
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button type="submit" className="h-11 w-full font-bold shadow-[0_3px_0_#236448]" disabled={loading}>
             {loading ? "Signing in..." : "Sign In"}
           </Button>
         </form>
 
         {/* Divider */}
-        <div className="relative">
+        <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">
             <span className="w-full border-t" />
           </div>
@@ -118,14 +119,14 @@ export default function LoginPage() {
         {/* Google Login */}
         <Button
           variant="outline"
-          className="w-full"
+          className="h-11 w-full font-semibold"
           onClick={handleGoogleLogin}
         >
           Continue with Google
         </Button>
 
         {/* Signup Link */}
-        <p className="text-center text-sm text-muted-foreground">
+        <p className="mt-6 text-center text-sm text-muted-foreground">
           Don&apos;t have an account?{" "}
           <Link href="/signup" className="font-medium text-primary underline-offset-4 hover:underline">
             Sign up
