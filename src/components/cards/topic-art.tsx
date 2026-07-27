@@ -39,7 +39,7 @@ export function TopicArt({
   return (
     <div
       className={cn(
-        "bg-ink relative flex h-24 items-center justify-between overflow-hidden rounded-xl px-5",
+        "bg-ink relative flex h-24 items-center justify-between overflow-hidden rounded-lg px-5",
         className
       )}
       aria-hidden

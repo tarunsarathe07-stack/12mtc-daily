@@ -46,15 +46,16 @@ export function TopNav({ isAdmin = false }: { isAdmin?: boolean }) {
               <Link
                 key={href}
                 href={href}
+                aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "relative rounded-lg px-3.5 py-2 text-sm font-semibold transition-colors",
-                  isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  "relative px-3.5 py-2 text-sm font-semibold transition-colors",
+                  isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 {isActive && (
                   <motion.span
                     layoutId="topnav-active"
-                    className="absolute inset-0 rounded-lg bg-primary/10"
+                    className="absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-saffron"
                     transition={{ type: "spring", stiffness: 400, damping: 34 }}
                   />
                 )}
@@ -65,8 +66,9 @@ export function TopNav({ isAdmin = false }: { isAdmin?: boolean }) {
           {isAdmin && (
             <Link
               href="/admin"
+              aria-current={pathname.startsWith("/admin") ? "page" : undefined}
               className={cn(
-                "relative rounded-lg px-3.5 py-2 text-sm font-semibold transition-colors",
+                "relative px-3.5 py-2 text-sm font-semibold transition-colors",
                 pathname.startsWith("/admin")
                   ? "text-primary"
                   : "text-muted-foreground hover:text-foreground"
@@ -75,7 +77,7 @@ export function TopNav({ isAdmin = false }: { isAdmin?: boolean }) {
               {pathname.startsWith("/admin") && (
                 <motion.span
                   layoutId="topnav-active"
-                  className="absolute inset-0 rounded-lg bg-primary/10"
+                  className="absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-saffron"
                   transition={{ type: "spring", stiffness: 400, damping: 34 }}
                 />
               )}

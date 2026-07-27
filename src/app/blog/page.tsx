@@ -33,7 +33,7 @@ export default async function BlogIndexPage() {
             <BrandMark size={36} priority />
             <span className="text-sm font-black">12 Minutes Daily — Guides</span>
           </Link>
-          <Link href="/today" className="rounded-xl bg-saffron px-4 py-2 text-sm font-black text-ink transition-all hover:-translate-y-0.5">
+          <Link href="/today" className="brand-action px-4 py-2 text-sm">
             Open App
           </Link>
         </div>
@@ -50,9 +50,9 @@ export default async function BlogIndexPage() {
               Simple guides for students who want a better current-affairs routine: what to read, how to revise, how to avoid negative marks, and when to test yourself.
             </p>
           </div>
-          <div className="rounded-2xl bg-primary p-5 text-white premium-outline">
+          <div className="rounded-lg bg-primary p-5 text-white premium-outline">
             <div className="flex items-center gap-3">
-              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-saffron text-ink">
+              <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-saffron text-ink">
                 <BookOpen className="h-5 w-5" />
               </span>
               <div>
@@ -61,12 +61,12 @@ export default async function BlogIndexPage() {
               </div>
             </div>
             <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
-              <div className="rounded-xl bg-white/10 p-3">
+              <div className="rounded-lg bg-white/10 p-3">
                 <Clock className="mb-2 h-4 w-4 text-saffron" />
                 <p className="font-black tabular-nums">{posts.length}</p>
                 <p className="text-xs text-white/55">published guides</p>
               </div>
-              <div className="rounded-xl bg-white/10 p-3">
+              <div className="rounded-lg bg-white/10 p-3">
                 <GraduationCap className="mb-2 h-4 w-4 text-saffron" />
                 <p className="font-black">CLAT UG</p>
                 <p className="text-xs text-white/55">prep strategy</p>
@@ -76,16 +76,16 @@ export default async function BlogIndexPage() {
         </section>
 
         {featured && (
-          <Link href={`/blog/${featured.slug}`} className="group grid gap-0 overflow-hidden rounded-[1.5rem] bg-card premium-outline lg:grid-cols-[1.05fr_0.95fr]">
+          <Link href={`/blog/${featured.slug}`} className="group grid gap-0 overflow-hidden rounded-lg bg-card premium-outline lg:grid-cols-[1.05fr_0.95fr]">
             <div className="p-6 sm:p-8">
-              <p className="editorial-kicker text-saffron">Featured guide</p>
+              <p className="editorial-kicker text-primary">Featured guide</p>
               <h2 className="font-display mt-4 text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
                 {featured.title}
               </h2>
               <p className="mt-4 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
                 {featured.excerpt}
               </p>
-              <span className="mt-6 inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-black text-white transition-all group-hover:-translate-y-0.5">
+              <span className="brand-secondary mt-6 gap-2 px-5 py-3 text-sm group-hover:-translate-y-0.5">
                 Read featured guide <ArrowRight className="h-4 w-4" />
               </span>
             </div>
@@ -112,10 +112,10 @@ export default async function BlogIndexPage() {
           </Card>
         )}
 
-        <div className="ink-panel overflow-hidden rounded-2xl p-6 text-center sm:p-8">
+        <div className="ink-panel overflow-hidden rounded-lg p-6 text-center sm:p-8">
           <p className="font-display text-xl font-semibold sm:text-2xl">Reading about strategy is step one. The habit is the strategy.</p>
           <p className="mx-auto mt-2 max-w-md text-sm text-white/55">12 current-affairs cards and a 12-question quiz, every day, free to start.</p>
-          <Link href="/today" className="mt-5 inline-flex items-center gap-2 rounded-xl bg-saffron px-6 py-2.5 text-sm font-black text-ink transition-all hover:-translate-y-0.5">
+          <Link href="/today" className="brand-action mt-5 gap-2 px-6 py-2.5 text-sm">
             Start 12 Minutes Daily <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
@@ -151,7 +151,7 @@ function EditorialSection({
             </span>
             <span>
               <span className="mb-2 flex flex-wrap items-center gap-2">
-                <Badge variant="secondary" className="bg-saffron-soft text-[10px] uppercase tracking-[0.14em] text-[#8a5200]">
+                <Badge variant="secondary" className="bg-saffron-soft text-[10px] uppercase tracking-[0.14em] text-ink">
                   {post.category}
                 </Badge>
                 <span className="text-[11px] text-muted-foreground">

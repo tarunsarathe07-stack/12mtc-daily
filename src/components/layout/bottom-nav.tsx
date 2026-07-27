@@ -22,13 +22,14 @@ export function BottomNav() {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden">
       <div className="mx-auto max-w-lg px-4 pb-[env(safe-area-inset-bottom)]">
-        <div className="mb-2 flex items-center justify-around rounded-xl border border-border bg-white shadow-lg shadow-ink/8">
+        <div className="mb-2 flex items-center justify-around rounded-lg border border-border bg-white shadow-lg shadow-ink/8">
           {navItems.map(({ href, label, icon: Icon }) => {
             const isActive = pathname === href || pathname.startsWith(href + "/");
             return (
               <Link
                 key={href}
                 href={href}
+                aria-current={isActive ? "page" : undefined}
                 className={cn(
                   "relative flex flex-col items-center gap-0.5 px-4 py-2.5 text-[11px] font-semibold transition-colors",
                   isActive ? "font-bold text-primary" : "text-muted-foreground hover:text-foreground"

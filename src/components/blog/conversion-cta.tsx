@@ -53,9 +53,9 @@ export function ConversionCta({ cta }: { cta: BlogPost["cta"] }) {
   return (
     <div className="space-y-3">
       {/* Primary CTA */}
-      <div className="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 p-6 sm:p-8">
+      <div className="rounded-lg border border-primary/20 bg-primary/5 p-6 sm:p-8">
         <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
-          <span className="bg-brand-gradient flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-lg font-black text-white shadow-md">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary text-lg font-black text-white shadow-md">
             12
           </span>
           <div className="flex-1">
@@ -66,7 +66,7 @@ export function ConversionCta({ cta }: { cta: BlogPost["cta"] }) {
             href={c.href}
             label={c.heading}
             eventType="blog_cta_click"
-            className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-saffron px-5 py-2.5 text-sm font-black text-ink shadow-lg shadow-saffron/25 transition-all hover:-translate-y-0.5 hover:bg-saffron/90"
+            className="brand-action shrink-0 gap-2 px-5 py-2.5 text-sm"
           >
             {c.icon}
             {c.button}
@@ -80,7 +80,7 @@ export function ConversionCta({ cta }: { cta: BlogPost["cta"] }) {
           href={tmcLink("blog-counselling", "counselling-call")}
           label={CTA_LABELS.counselling}
           eventType="blog_cta_click"
-          className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 transition-all hover:-translate-y-0.5 hover:shadow-md"
+          className="flex items-center gap-3 rounded-lg border border-border bg-card p-4 transition-all hover:-translate-y-0.5 hover:shadow-md"
         >
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
             <Phone className="h-4 w-4" />
@@ -91,7 +91,7 @@ export function ConversionCta({ cta }: { cta: BlogPost["cta"] }) {
           href={tmcLink("blog-prep-plan", "prep-plan")}
           label={CTA_LABELS.prepPlan}
           eventType="blog_cta_click"
-          className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 transition-all hover:-translate-y-0.5 hover:shadow-md"
+          className="flex items-center gap-3 rounded-lg border border-border bg-card p-4 transition-all hover:-translate-y-0.5 hover:shadow-md"
         >
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-foreground">
             <GraduationCap className="h-4 w-4" />

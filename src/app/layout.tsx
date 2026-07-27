@@ -26,7 +26,7 @@ const readingFont = Atkinson_Hyperlegible_Next({
 export const metadata: Metadata = {
   title: "12 Minutes Daily — CLAT Current Affairs in 12 Minutes a Day",
   description:
-    "12 shorts, 12 quiz questions, one daily battle. Master CLAT current affairs in 12 minutes a day. A 12 Minutes to CLAT product.",
+    "12 current-affairs cards and 12 quiz questions every day. Master CLAT current affairs in 12 minutes a day. A 12 Minutes to CLAT product.",
   manifest: "/manifest.json",
   icons: {
     icon: [
@@ -45,9 +45,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
-  themeColor: "#2f7d5c",
+  themeColor: "#283593",
 };
 
 export default function RootLayout({

@@ -12,19 +12,19 @@ import { MOCK_USER, MOCK_MASTERY } from "@/lib/mock-data";
 const topicMeta = [
   { id: "polity", label: "Polity", icon: Landmark, color: "bg-primary/10 text-primary" },
   { id: "legal", label: "Legal", icon: Scale, color: "bg-primary/10 text-primary" },
-  { id: "international", label: "International", icon: Globe, color: "bg-saffron-soft text-[#8a5200]" },
+  { id: "international", label: "International", icon: Globe, color: "bg-saffron-soft text-ink" },
   { id: "economy", label: "Economy", icon: Zap, color: "bg-primary/10 text-primary" },
-  { id: "environment", label: "Environment", icon: TreePine, color: "bg-saffron-soft text-[#8a5200]" },
-  { id: "awards", label: "Awards & Reports", icon: Award, color: "bg-saffron-soft text-[#8a5200]" },
+  { id: "environment", label: "Environment", icon: TreePine, color: "bg-saffron-soft text-ink" },
+  { id: "awards", label: "Awards & Reports", icon: Award, color: "bg-saffron-soft text-ink" },
 ];
 
 export default function BattlePage() {
   return (
     <>
-      <TopBar title="Battle" streak={MOCK_USER.streak_current} />
+      <TopBar title="Quiz" streak={MOCK_USER.streak_current} />
       <div className="mx-auto max-w-lg space-y-7 px-4 py-5 md:max-w-2xl lg:max-w-4xl lg:py-8">
         {/* Daily Battle */}
-        <Card className="soft-card overflow-hidden rounded-xl">
+        <Card className="soft-card overflow-hidden rounded-lg">
           <CardContent className="p-0">
             <div className="space-y-4 p-5">
               <div className="flex items-center gap-3">
@@ -47,7 +47,7 @@ export default function BattlePage() {
                 </Badge>
               </div>
               <Link href="/battle/queue?mode=daily">
-                <Button className="mt-2 h-11 w-full rounded-lg bg-primary font-bold text-white shadow-[0_3px_0_#236448] hover:bg-primary/90" size="lg">
+                <Button variant="brand" className="mt-2 h-11 w-full" size="lg">
                   Start quiz battle
                 </Button>
               </Link>
@@ -63,7 +63,7 @@ export default function BattlePage() {
               const mastery = MOCK_MASTERY.find((m) => m.topic === id)?.mastery_pct || 0;
               return (
                 <Link key={id} href={`/battle/queue?mode=topic&topic=${id}`}>
-                  <Card className="soft-card h-full cursor-pointer rounded-xl transition-all hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-md">
+                  <Card className="soft-card h-full cursor-pointer rounded-lg transition-all hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-md">
                     <CardContent className="p-4 space-y-2">
                       <div className={cn("flex h-10 w-10 items-center justify-center rounded-lg", color)}>
                         <Icon className="h-5 w-5" />

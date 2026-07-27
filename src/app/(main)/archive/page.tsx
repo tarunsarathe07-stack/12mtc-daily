@@ -76,7 +76,7 @@ export default async function ArchivePage() {
 
         <Link
           href="/shorts?day=saved"
-          className="mt-6 flex items-center gap-3 rounded-2xl border border-saffron/40 bg-saffron-soft px-4 py-3.5 transition-all hover:-translate-y-0.5"
+          className="mt-6 flex items-center gap-3 rounded-lg border border-saffron/40 bg-saffron-soft px-4 py-3.5 transition-all hover:-translate-y-0.5"
         >
           <Bookmark className="h-4 w-4 text-saffron" />
           <span className="flex-1 text-sm font-bold">Your saved cards</span>

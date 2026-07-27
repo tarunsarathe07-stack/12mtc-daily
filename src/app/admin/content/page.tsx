@@ -83,10 +83,10 @@ type StatusFilter = "all" | "review" | "approved" | "published" | "rejected";
 
 const STATUS_COLORS: Record<string, string> = {
   draft: "bg-gray-100 text-gray-700",
-  review: "bg-amber-100 text-amber-700",
-  approved: "bg-blue-100 text-blue-700",
+  review: "bg-saffron-soft text-ink",
+  approved: "bg-primary/10 text-primary",
   published: "bg-primary/10 text-primary",
-  rejected: "bg-red-100 text-red-700",
+  rejected: "bg-coral-soft text-coral",
 };
 
 export default function AdminContentPage() {
@@ -217,7 +217,7 @@ export default function AdminContentPage() {
             <p className="text-sm text-muted-foreground">
               Review, approve, or reject AI-generated content
               {stats.todayPublished !== undefined && (
-                <> &mdash; <span className={stats.todayPublished >= 12 ? "text-primary font-semibold" : "text-amber-600 font-semibold"}>{stats.todayPublished}/12 published today</span></>
+                <> &mdash; <span className="font-semibold text-primary">{stats.todayPublished}/12 published today</span></>
               )}
             </p>
           </div>
@@ -231,7 +231,7 @@ export default function AdminContentPage() {
             className="flex w-full items-center justify-between gap-3 p-4 text-left"
           >
             <div className="flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-saffron-soft text-saffron">
+              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-saffron-soft text-saffron">
                 <Sparkles className="h-5 w-5" />
               </span>
               <div>
@@ -252,7 +252,7 @@ export default function AdminContentPage() {
                     value={manualForm.title}
                     onChange={(e) => setManualForm((form) => ({ ...form, title: e.target.value }))}
                     placeholder="Example: At G7 meet, India can be the voice of developing countries"
-                    className="w-full rounded-xl border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+                    className="w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
                   />
                 </label>
                 <label className="space-y-1">
@@ -261,7 +261,7 @@ export default function AdminContentPage() {
                     value={manualForm.source}
                     onChange={(e) => setManualForm((form) => ({ ...form, source: e.target.value }))}
                     placeholder="Indian Express"
-                    className="w-full rounded-xl border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+                    className="w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
                   />
                 </label>
                 <label className="space-y-1">
@@ -269,7 +269,7 @@ export default function AdminContentPage() {
                   <select
                     value={manualForm.topic}
                     onChange={(e) => setManualForm((form) => ({ ...form, topic: e.target.value }))}
-                    className="w-full rounded-xl border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+                    className="w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
                   >
                     <option value="">Infer automatically</option>
                     <option value="legal">Legal</option>
@@ -286,7 +286,7 @@ export default function AdminContentPage() {
                     value={manualForm.url}
                     onChange={(e) => setManualForm((form) => ({ ...form, url: e.target.value }))}
                     placeholder="https://..."
-                    className="w-full rounded-xl border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+                    className="w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
                   />
                 </label>
                 <label className="space-y-1 sm:col-span-2">
@@ -296,7 +296,7 @@ export default function AdminContentPage() {
                     onChange={(e) => setManualForm((form) => ({ ...form, snippet: e.target.value }))}
                     placeholder="Paste the paragraph or intern note here. The AI will stick to this material."
                     rows={4}
-                    className="w-full resize-none rounded-xl border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+                    className="w-full resize-none rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
                   />
                 </label>
               </div>
@@ -418,7 +418,7 @@ export default function AdminContentPage() {
                             "text-[10px]",
                             hasQuestions
                               ? "border-primary/25 bg-primary/5 text-primary"
-                              : "border-red-200 bg-red-50 text-red-700"
+                              : "border-coral/25 bg-coral-soft text-coral"
                           )}
                         >
                           {item.questions.length} question{item.questions.length === 1 ? "" : "s"}
@@ -458,12 +458,12 @@ export default function AdminContentPage() {
 
                       {/* Why it matters */}
                       {item.why_it_matters && (
-                        <Card className="border-amber-200 bg-amber-50">
+                        <Card className="border-saffron/30 bg-saffron-soft">
                           <CardContent className="p-3">
-                            <p className="text-xs font-semibold text-amber-800 mb-1">
+                            <p className="mb-1 text-xs font-semibold text-ink">
                               Why it matters for CLAT
                             </p>
-                            <p className="text-xs text-amber-700">
+                            <p className="text-xs text-foreground/75">
                               {item.why_it_matters}
                             </p>
                           </CardContent>
@@ -489,7 +489,7 @@ export default function AdminContentPage() {
                             Quiz Questions ({item.questions.length})
                           </p>
                           {outsideLegalWarnings(item).map((w, i) => (
-                            <p key={i} className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1 mb-1">
+                            <p key={i} className="mb-1 rounded border border-saffron/30 bg-saffron-soft px-2 py-1 text-[11px] text-foreground/75">
                               ⚠ {w}
                             </p>
                           ))}
@@ -602,7 +602,7 @@ export default function AdminContentPage() {
                           </Button>
                         )}
                         {!hasQuestions && item.status !== "published" && (
-                          <span className="text-xs font-medium text-red-600">
+                          <span className="text-xs font-medium text-coral">
                             Needs quiz questions before publishing.
                           </span>
                         )}

@@ -45,7 +45,7 @@ export default function ResetPasswordPage() {
             </p>
           </div>
           <Link href="/today">
-            <Button className="w-full">Continue to today&apos;s 12</Button>
+            <Button variant="brand" className="w-full">Continue to today&apos;s 12</Button>
           </Link>
         </div>
       </main>
@@ -56,7 +56,7 @@ export default function ResetPasswordPage() {
     <main className="flex min-h-dvh items-center justify-center px-4">
       <div className="w-full max-w-sm space-y-6">
         <div className="space-y-2 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-xl font-black text-primary-foreground">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-lg bg-primary text-xl font-black text-primary-foreground">
             12
           </div>
           <h1 className="text-2xl font-bold">Choose a new password</h1>
@@ -95,7 +95,7 @@ export default function ResetPasswordPage() {
             />
           </div>
           {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button type="submit" variant="brand" className="w-full" disabled={loading}>
             {loading ? "Updating password..." : "Update password"}
           </Button>
         </form>

@@ -84,7 +84,7 @@ export default function ProfilePage() {
   const nextThreshold = getNextLeagueThreshold(user.league);
 
   const stats = [
-    { label: "Rating", value: user.rating, icon: Trophy, color: "text-saffron" },
+    { label: "Rating", value: user.rating, icon: Trophy, color: "text-primary" },
     { label: "XP", value: user.xp, icon: Zap, color: "text-saffron" },
     { label: "Streak", value: user.streak_current, icon: Flame, color: "text-saffron" },
     { label: "Won", value: user.battles_won, icon: Swords, color: "text-primary" },
@@ -95,7 +95,7 @@ export default function ProfilePage() {
       <TopBar title="Profile" streak={user.streak_current} />
       <div className="mx-auto max-w-lg space-y-6 px-4 py-4 md:max-w-2xl lg:max-w-3xl lg:py-6">
         {/* Profile Header */}
-        <div className="soft-card flex items-center gap-4 rounded-xl p-4">
+        <div className="soft-card flex items-center gap-4 rounded-lg p-4">
           <Avatar className="h-16 w-16">
             <AvatarFallback className="bg-primary text-xl font-bold text-white">
               {user.display_name.charAt(0).toUpperCase()}
@@ -111,7 +111,7 @@ export default function ProfilePage() {
 
         {/* XP Progress to next league */}
         {nextThreshold && (
-          <Card className="soft-card rounded-xl">
+          <Card className="soft-card rounded-lg">
             <CardContent className="p-4">
               <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
                 <span>{leagueInfo.emoji} {leagueInfo.label}</span>
@@ -142,7 +142,7 @@ export default function ProfilePage() {
         {/* Stats Grid */}
         <div className="grid grid-cols-4 gap-3">
           {stats.map(({ label, value, icon: Icon, color }) => (
-            <Card key={label} className="soft-card rounded-xl">
+            <Card key={label} className="soft-card rounded-lg">
               <CardContent className="flex flex-col items-center gap-1 p-3">
                 <Icon className={`h-4 w-4 ${color}`} />
                 <span className="text-lg font-bold tabular-nums">{value}</span>
@@ -166,7 +166,7 @@ export default function ProfilePage() {
                 <Link
                   key={m.topic}
                   href={`/battle/queue?mode=topic&topic=${m.topic}`}
-                  className="soft-card soft-card-hover block rounded-xl px-4 py-3"
+                  className="soft-card soft-card-hover block rounded-lg px-4 py-3"
                 >
                   <div className="mb-2 flex items-center justify-between gap-3">
                       <span className="text-sm font-bold capitalize text-foreground">
@@ -190,13 +190,13 @@ export default function ProfilePage() {
 
         <Separator />
 
-        {/* Battle Stats */}
+        {/* Quiz Stats */}
         <section>
           <h3 className="font-semibold flex items-center gap-2 mb-3">
             <Swords className="h-4 w-4 text-primary" />
-            Battle Summary
+            Quiz summary
           </h3>
-          <Card className="soft-card rounded-xl">
+          <Card className="soft-card rounded-lg">
             <CardContent className="p-4">
               <div className="grid grid-cols-3 gap-4 text-center">
                 <div>
@@ -222,17 +222,17 @@ export default function ProfilePage() {
 
         {/* Streak info */}
         <section>
-          <Card className="soft-card rounded-xl border-saffron/25 bg-saffron-soft">
+          <Card className="soft-card rounded-lg border-saffron/25 bg-saffron-soft">
             <CardContent className="p-4 flex items-center gap-4">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-saffron-soft">
                 <Flame className="h-6 w-6 text-saffron" />
               </div>
               <div>
-                <p className="font-semibold text-sm text-[#8a5200]">
+                <p className="text-sm font-semibold text-ink">
                   {user.streak_current} Day Streak
                 </p>
-                <p className="text-xs text-[#8a5200]">
-                  Best streak: {user.streak_best} days | Complete 1 battle or read 5 shorts daily to keep it going!
+                <p className="text-xs text-foreground/70">
+                  Best streak: {user.streak_best} days | Complete 1 quiz or read 5 cards daily to keep it going.
                 </p>
               </div>
             </CardContent>
@@ -245,7 +245,7 @@ export default function ProfilePage() {
             <Flame className="h-4 w-4 text-saffron" />
             Streak calendar
           </h3>
-          <Card className="soft-card rounded-xl">
+          <Card className="soft-card rounded-lg">
             <CardContent className="p-4">
               <div className="grid grid-cols-7 gap-1.5">
                 {calendarDays.map(({ date, label }) => {
@@ -257,7 +257,7 @@ export default function ProfilePage() {
                       className={cn(
                         "flex aspect-square items-center justify-center rounded-md text-[10px] font-semibold",
                         active
-                          ? "bg-primary text-primary-foreground"
+                          ? "bg-saffron text-ink"
                           : "bg-muted text-muted-foreground/60"
                       )}
                     >
@@ -267,7 +267,7 @@ export default function ProfilePage() {
                 })}
               </div>
               <p className="mt-3 text-[11px] text-muted-foreground">
-                A day counts when you finish 1 battle or read 5 shorts.
+                A day counts when you finish 1 quiz or read 5 cards.
               </p>
             </CardContent>
           </Card>
@@ -282,7 +282,7 @@ export default function ProfilePage() {
               Demo
             </Badge>
           </h3>
-          <Card className="soft-card rounded-xl">
+          <Card className="soft-card rounded-lg">
             <CardContent className="divide-y divide-border p-0">
               {leaderboard.map((row, i) => (
                 <div
@@ -296,7 +296,7 @@ export default function ProfilePage() {
                     className={cn(
                       "flex h-6 w-6 items-center justify-center rounded-full text-xs font-black",
                       i === 0
-                        ? "bg-saffron-soft text-[#8a5200]"
+                        ? "bg-saffron-soft text-ink"
                         : i === 1
                         ? "bg-muted text-foreground"
                         : "bg-muted text-muted-foreground"
@@ -325,7 +325,7 @@ export default function ProfilePage() {
           <FunnelLink
             href={tmcLink("profile-prep-plan", "prep-plan")}
             label={CTA_LABELS.prepPlan}
-            className="block rounded-xl border border-primary/20 bg-primary/5 p-4 transition-all hover:-translate-y-0.5 hover:border-primary/35"
+            className="block rounded-lg border border-primary/20 bg-primary/5 p-4 transition-all hover:-translate-y-0.5 hover:border-primary/35"
           >
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-white">
@@ -343,7 +343,7 @@ export default function ProfilePage() {
           <FunnelLink
             href={tmcLink("profile-counselling", "counselling-call")}
             label={CTA_LABELS.counselling}
-            className="flex w-full items-center gap-3 rounded-xl border border-border bg-white p-4 text-left transition-all hover:-translate-y-0.5 hover:border-primary/25"
+            className="flex w-full items-center gap-3 rounded-lg border border-border bg-white p-4 text-left transition-all hover:-translate-y-0.5 hover:border-primary/25"
           >
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
               <Phone className="h-5 w-5" />

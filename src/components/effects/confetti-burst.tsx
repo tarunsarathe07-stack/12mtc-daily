@@ -8,7 +8,7 @@
 import { motion } from "framer-motion";
 
 // Brand confetti: deep blue + saffron + coral
-const COLORS = ["#0f766e", "#14b8a6", "#f97362", "#f5b840", "#0e4f4a", "#fb923c"];
+const COLORS = ["#283593", "#f9a01b", "#5966b2", "#d84f4f", "#111846", "#8c95c4"];
 const PIECES = 44;
 
 function seededValue(index: number, salt: number): number {

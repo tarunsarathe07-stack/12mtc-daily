@@ -136,13 +136,13 @@ function QueueContent() {
                 {[0, 1, 2].map((i) => (
                   <motion.span
                     key={i}
-                    className="absolute inset-0 rounded-full border-2 border-primary/40"
+                    className="absolute inset-0 rounded-full border-2 border-saffron/45"
                     animate={{ scale: [1, 1.9], opacity: [0.7, 0] }}
                     transition={{ duration: 1.8, repeat: Infinity, delay: i * 0.6 }}
                   />
                 ))}
-                <div className="bg-brand-gradient absolute inset-0 flex items-center justify-center rounded-full shadow-lg shadow-primary/30">
-                  <Swords className="h-10 w-10 text-white" />
+                <div className="absolute inset-0 flex items-center justify-center rounded-full bg-primary shadow-lg shadow-primary/30">
+                  <Swords className="h-10 w-10 text-saffron" />
                 </div>
               </div>
               <div>
@@ -186,19 +186,19 @@ function QueueContent() {
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ type: "spring", stiffness: 240, damping: 14 }}
-                className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-primary/15 ring-4 ring-primary/30"
+                className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-saffron/15 ring-4 ring-saffron/30"
               >
-                <Bot className="h-11 w-11 text-primary-foreground" />
+                <Bot className="h-11 w-11 text-saffron" />
               </motion.div>
               <div>
-                <h2 className="text-2xl font-black">Opponent found!</h2>
+                <h2 className="text-2xl font-bold">Opponent found!</h2>
                 <p className="mt-1 text-sm text-white/50">
                   You&apos;re facing <span className="font-semibold text-white">{session.bot.name}</span> 🤖
                 </p>
               </div>
               {phase === "found" && (
                 <div className="space-y-4">
-                  <label className="mx-auto flex max-w-xs cursor-pointer items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-left">
+                  <label className="mx-auto flex max-w-xs cursor-pointer items-center justify-between rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-left">
                     <span>
                       <span className="block text-sm font-bold text-white">15-second timer</span>
                       <span className="block text-xs text-white/50">Turn it off for untimed practice.</span>
@@ -217,7 +217,7 @@ function QueueContent() {
                       setCountdown(3);
                       setPhase("countdown");
                     }}
-                    className="w-full rounded-xl bg-saffron px-6 py-3 text-sm font-black text-ink shadow-lg shadow-saffron/20 hover:bg-saffron/90"
+                    className="w-full rounded-lg bg-saffron px-6 py-3 text-sm font-bold text-ink shadow-lg shadow-saffron/20 hover:bg-saffron/90"
                   >
                     I&apos;m ready — start quiz
                   </button>
@@ -238,14 +238,14 @@ function QueueContent() {
 
           {phase === "error" && (
             <motion.div key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
-              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-amber-100">
-                <AlertTriangle className="h-9 w-9 text-amber-600" />
+              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-saffron-soft">
+                <AlertTriangle className="h-9 w-9 text-saffron" />
               </div>
               <div>
                 <h2 className="text-lg font-bold">Quiz battle is not ready yet</h2>
                 <p className="mt-1 text-sm text-white/55">{errorMsg}</p>
                 {questionReadiness && (
-                  <p className="mt-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white">
+                  <p className="mt-3 rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white">
                     {questionReadiness.available}/{questionReadiness.required} approved questions ready
                   </p>
                 )}
@@ -253,13 +253,13 @@ function QueueContent() {
               <div className="flex flex-col gap-2">
                 <Link
                   href="/shorts"
-                  className="inline-block rounded-xl bg-saffron px-6 py-2.5 text-sm font-semibold text-ink"
+                  className="inline-block rounded-lg bg-saffron px-6 py-2.5 text-sm font-semibold text-ink"
                 >
                   Read today&apos;s 12
                 </Link>
                 <Link
                   href="/battle"
-                  className="inline-block rounded-xl border border-white/15 px-6 py-2.5 text-sm font-semibold text-white"
+                  className="inline-block rounded-lg border border-white/15 px-6 py-2.5 text-sm font-semibold text-white"
                 >
                   Back to quiz lobby
                 </Link>

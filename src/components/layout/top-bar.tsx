@@ -20,7 +20,7 @@ export function TopBar({ title, streak = 0 }: TopBarProps) {
           </h1>
         </Link>
         {streak > 0 && (
-          <div className="flex items-center gap-1.5 rounded-lg bg-saffron/15 px-2.5 py-1.5 text-sm font-bold text-[#8a6500]">
+          <div className="flex items-center gap-1.5 rounded-lg border border-saffron/30 bg-saffron-soft px-2.5 py-1.5 text-sm font-bold text-ink">
             <Flame className="animate-flame h-4 w-4" />
             <span className="tabular-nums">{streak}</span>
           </div>

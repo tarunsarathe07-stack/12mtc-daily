@@ -66,7 +66,7 @@ export function ContextQuiz({ questions }: { questions: Question[] }) {
       </div>
 
       {finished ? (
-        <div className="rounded-xl border border-primary/20 bg-primary/5 p-5">
+        <div className="rounded-lg border border-primary/20 bg-primary/5 p-5">
           <p className="text-sm font-semibold text-primary">Topic review complete</p>
           <p className="mt-2 font-display text-3xl font-semibold">
             {score}/{questions.length}
@@ -96,14 +96,14 @@ export function ContextQuiz({ questions }: { questions: Question[] }) {
                     "flex min-h-12 w-full items-center gap-3 rounded-lg border border-border bg-card px-3.5 py-2.5 text-left text-sm transition-colors",
                     !answered && "hover:border-primary/40 hover:bg-primary/5",
                     answered && isCorrect && "border-primary/40 bg-primary/10",
-                    answered && isSelected && !isCorrect && "border-red-300 bg-red-50"
+                    answered && isSelected && !isCorrect && "border-coral/35 bg-coral-soft"
                   )}
                 >
                   <span
                     className={cn(
                       "flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border text-xs font-bold",
                       answered && isCorrect && "border-primary bg-primary text-primary-foreground",
-                      answered && isSelected && !isCorrect && "border-red-500 bg-red-500 text-white"
+                      answered && isSelected && !isCorrect && "border-coral bg-coral text-white"
                     )}
                   >
                     {answered && isCorrect ? (

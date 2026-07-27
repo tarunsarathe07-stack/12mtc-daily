@@ -47,7 +47,7 @@ export default function TodayPage() {
     readIds: [],
     bookmarks: [],
   });
-  const [progressLoaded, setProgressLoaded] = useState(false);
+  const [progressLoaded, setProgressLoaded] = useState(SHOW_LOCAL_DEMO);
 
   useEffect(() => {
     fetch(`/api/content/published?date=${istToday()}`, { cache: "no-store" })
@@ -116,7 +116,7 @@ export default function TodayPage() {
           <section className="mb-8 space-y-3">
             <div className="flex items-center justify-between">
               <p className="editorial-kicker text-muted-foreground">Daily progress</p>
-              <p className="text-sm font-black text-saffron">{readToday} / {DAILY_TARGET}</p>
+              <p className="text-sm font-black text-primary">{readToday} / {DAILY_TARGET}</p>
             </div>
             <div className="grid grid-cols-12 gap-1.5">
               {Array.from({ length: DAILY_TARGET }).map((_, index) => (
@@ -138,14 +138,14 @@ export default function TodayPage() {
                 <h2 className="mt-2 text-2xl font-bold sm:text-3xl">{isDone ? "Quiz is ready" : "Read today's 12"}</h2>
                 <p className="mt-2 max-w-lg text-sm leading-6 text-muted-foreground">{nextAction.helper}</p>
               </div>
-              <Link href={nextAction.href} className="group inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-primary px-5 text-sm font-bold text-white shadow-[0_3px_0_#236448] transition-transform hover:-translate-y-0.5" aria-label={nextAction.label}>
+              <Link href={nextAction.href} className="brand-action group h-11 gap-2 px-5 text-sm" aria-label={nextAction.label}>
                 {nextAction.label}
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
             </div>
           </section>
 
-          <div className="mb-8 flex items-start gap-3 rounded-2xl bg-white/70 px-4 py-3 text-sm shadow-sm ring-1 ring-border/60">
+          <div className="mb-8 flex items-start gap-3 rounded-lg bg-white px-4 py-3 text-sm shadow-sm ring-1 ring-border">
             <Radio className="mt-0.5 h-4 w-4 shrink-0 text-saffron" />
             <p className="leading-6 text-muted-foreground"><span className="font-black text-foreground">12 cards ready today.</span> Updated for today&apos;s exam prep.</p>
           </div>
@@ -157,14 +157,14 @@ export default function TodayPage() {
                 <span className="rounded-md bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">Personal</span>
               </div>
               <div className="mt-4 space-y-4">
-                {!progressLoaded ? Array.from({ length: 2 }).map((_, index) => <div key={index} className="h-16 animate-pulse rounded-2xl bg-muted" />) : weakTopics.length === 0 ? (
+                {!progressLoaded ? Array.from({ length: 2 }).map((_, index) => <div key={index} className="h-16 animate-pulse rounded-lg bg-muted" />) : weakTopics.length === 0 ? (
                   <p className="py-4 text-sm leading-6 text-muted-foreground">Take one quiz and weak-topic drills will appear here.</p>
                 ) : weakTopics.map((topic) => (
                   <Link key={topic.topic} href={`/battle/queue?mode=topic&topic=${topic.topic}`} className="group block rounded-lg px-2 py-2 hover:bg-muted/60">
                     <div className="flex items-center justify-between gap-4">
                       <div className="min-w-0 flex-1">
                         <p className="font-bold capitalize">{topic.topic}</p>
-                        <div className="mt-2 h-2 overflow-hidden rounded-full bg-primary/10"><div className="h-full rounded-full bg-primary" style={{ width: `${Math.max(4, topic.mastery_pct)}%` }} /></div>
+                        <div className="data-track mt-2 h-2 overflow-hidden rounded-full"><div className="data-fill h-full rounded-full" style={{ width: `${Math.max(4, topic.mastery_pct)}%` }} /></div>
                       </div>
                       <div className="flex items-center gap-3">
                         <span className="rounded-md bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary">{topic.mastery_pct}%</span>
@@ -173,7 +173,7 @@ export default function TodayPage() {
                     </div>
                   </Link>
                 ))}
-                <Link href="/battle" className="mt-4 flex h-11 items-center justify-center rounded-lg border border-primary px-4 text-sm font-bold text-primary transition hover:bg-primary hover:text-white">Start targeted session</Link>
+                <Link href="/battle" className="brand-outline mt-4 h-11 px-4 text-sm">Start targeted session</Link>
               </div>
             </section>
 
@@ -196,7 +196,7 @@ export default function TodayPage() {
                           className="h-full w-full object-cover"
                           unoptimized
                         />
-                      ) : <div className="flex h-full w-full items-center justify-center bg-[linear-gradient(135deg,#ececf8,#fff0d3)]"><BookOpen className="h-6 w-6 text-primary" /></div>}
+                      ) : <div className="flex h-full w-full items-center justify-center bg-primary/5"><BookOpen className="h-6 w-6 text-primary" /></div>}
                     </div>
                     <div className="min-w-0 py-1">
                       <p className="text-xs font-semibold text-primary">{sourceName(item)} <span className="text-muted-foreground">· {item.is_demo ? "Demo" : "Reviewed"}</span></p>
@@ -216,7 +216,7 @@ export default function TodayPage() {
               <BookOpen className="h-5 w-5 text-primary" /><span className="font-semibold">Revise yesterday</span><ArrowRight className="ml-auto h-4 w-4" />
             </Link>
             <Link href="/battle" className="stitch-card flex items-center gap-3 rounded-lg p-4 transition hover:border-primary/25">
-              <Swords className="h-5 w-5 text-[#2f6fbd]" /><span className="font-semibold">Quiz battle</span><ArrowRight className="ml-auto h-4 w-4" />
+              <Swords className="h-5 w-5 text-primary" /><span className="font-semibold">Quiz battle</span><ArrowRight className="ml-auto h-4 w-4" />
             </Link>
           </div>
         </div>

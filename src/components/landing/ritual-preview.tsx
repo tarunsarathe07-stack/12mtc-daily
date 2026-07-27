@@ -50,7 +50,7 @@ export function RitualPreview() {
         </div>
         <div className="flex flex-col justify-between p-5 lg:p-7">
           <div>
-            <p className="editorial-kicker text-saffron">Step {index + 1} of 4</p>
+            <p className="editorial-kicker text-primary">Step {index + 1} of 4</p>
             <h3 className="mt-2 text-2xl font-bold">{active.title}</h3>
             <p className="mt-4 text-sm leading-7 text-muted-foreground">{active.helper}</p>
           </div>
@@ -70,7 +70,7 @@ export function RitualPreview() {
 function ReadScene() {
   return <div className="flex h-full flex-col justify-between">
     <div>
-      <div className="mb-5 h-36 rounded-lg bg-[#e6eef5]" />
+      <div className="mb-5 h-36 rounded-lg bg-primary/8" />
       <div className="flex items-center gap-2 text-xs font-semibold text-primary"><ShieldCheck className="h-3.5 w-3.5" /> The Hindu <span className="text-muted-foreground">today</span></div>
       <h4 className="mt-3 max-w-lg text-2xl font-bold leading-snug">Supreme Court reserves judgment on electoral bonds</h4>
     </div>
@@ -96,7 +96,7 @@ function QuizScene() {
 
 function StreakScene() {
   return <div className="flex h-full flex-col justify-center text-center">
-    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-xl bg-saffron/18"><Flame className="h-8 w-8 text-[#b77b00]" /></div>
+    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-lg bg-saffron/18"><Flame className="h-8 w-8 text-saffron" /></div>
     <p className="mt-5 text-3xl font-bold text-primary">14 days</p>
     <p className="mt-2 text-sm font-semibold text-muted-foreground">Current streak protected</p>
     <div className="mt-6 grid grid-cols-7 gap-2">{Array.from({ length: 14 }).map((_, i) => <span key={i} className={cn("h-8 rounded-lg", i > 10 ? "bg-saffron" : "bg-saffron/45")} />)}</div>

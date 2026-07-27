@@ -34,7 +34,7 @@ export default function ForgotPasswordPage() {
     return (
       <main className="flex min-h-dvh items-center justify-center px-4">
         <div className="w-full max-w-sm space-y-5 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-lg bg-primary/10 text-primary">
             <MailCheck className="h-7 w-7" />
           </div>
           <div>
@@ -55,7 +55,7 @@ export default function ForgotPasswordPage() {
     <main className="flex min-h-dvh items-center justify-center px-4">
       <div className="w-full max-w-sm space-y-6">
         <div className="space-y-2 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-xl font-black text-primary-foreground">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-lg bg-primary text-xl font-black text-primary-foreground">
             12
           </div>
           <h1 className="text-2xl font-bold">Reset your password</h1>
@@ -79,7 +79,7 @@ export default function ForgotPasswordPage() {
             />
           </div>
           {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button type="submit" variant="brand" className="w-full" disabled={loading}>
             {loading ? "Sending reset link..." : "Send reset link"}
           </Button>
         </form>

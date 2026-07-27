@@ -37,8 +37,7 @@ export default async function LandingPage() {
             <BrandMark size={40} priority />
             <span className="leading-none">
               <span className="block text-sm font-bold text-foreground sm:text-base">
-                <span className="sm:hidden">12 Minutes</span>
-                <span className="hidden sm:inline">12 Minutes Daily</span>
+                <span>12 Minutes Daily</span>
               </span>
               <span className="mt-1 hidden text-[10px] font-medium text-muted-foreground sm:block">
                 by 12 Minutes to CLAT

@@ -21,7 +21,7 @@ export default async function AccessDeniedPage() {
   return (
     <div className="flex min-h-dvh items-center justify-center px-4">
       <div className="mx-auto max-w-sm space-y-5 text-center">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-lg bg-primary/10 text-primary">
           <ShieldOff className="h-7 w-7" />
         </div>
         <div className="space-y-2">

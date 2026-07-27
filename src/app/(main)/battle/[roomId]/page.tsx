@@ -240,7 +240,7 @@ export default function BattleRoomPage() {
         <p className="text-white/50">This battle has expired or was opened directly.</p>
         <Link
           href="/battle"
-          className="rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground"
+          className="brand-action px-6 py-2.5 text-sm"
         >
           Start a new battle
         </Link>
@@ -344,9 +344,9 @@ export default function BattleRoomPage() {
                 <motion.span
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  className="absolute -right-1 -top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-primary"
+                  className="absolute -right-1 -top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-saffron"
                 >
-                  <Check className="h-2.5 w-2.5 text-white" />
+                  <Check className="h-2.5 w-2.5 text-ink" />
                 </motion.span>
               )}
             </div>
@@ -439,10 +439,10 @@ export default function BattleRoomPage() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -40 }}
             transition={{ duration: 0.2 }}
-            className="flex flex-1 flex-col rounded-[1.75rem] border border-white/[0.08] bg-white/[0.035] p-4 shadow-2xl shadow-black/20 backdrop-blur-sm sm:p-6"
+            className="flex flex-1 flex-col rounded-lg border border-white/[0.08] bg-white/[0.035] p-4 shadow-2xl shadow-black/20 backdrop-blur-sm sm:p-6"
           >
             <div className="mb-6 border-b border-white/[0.08] pb-5">
-              <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-primary">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-saffron">
                 Question {idx + 1} of {total}
               </p>
               <p className="mt-3 text-xl font-black leading-snug tracking-[-0.02em] text-white lg:text-2xl">
@@ -466,10 +466,10 @@ export default function BattleRoomPage() {
                     animate={isWrongPick ? { x: [0, -6, 6, -4, 4, 0] } : {}}
                     transition={{ duration: 0.4 }}
                     className={cn(
-                      "bg-ink-panel relative min-h-[72px] rounded-xl border p-4 text-left transition-all",
+                      "bg-ink-panel relative min-h-[72px] rounded-lg border p-4 text-left transition-all",
                       !reveal && !isLocked && "border-white/[0.08] hover:border-saffron/70 hover:bg-white/[0.06]",
                       !reveal && isLocked && "border-saffron bg-saffron/10",
-                      reveal && isCorrectOpt && "border-primary bg-primary/15",
+                      reveal && isCorrectOpt && "border-primary/80 bg-primary/25",
                       reveal && isWrongPick && "border-coral bg-coral/10",
                       reveal && !isCorrectOpt && !isWrongPick && "opacity-35",
                       (locked || reveal) && "cursor-default"
@@ -536,7 +536,7 @@ export default function BattleRoomPage() {
                       className={cn(
                         "rounded-lg px-3 py-1 text-sm font-black",
                         reveal.playerCorrect
-                          ? "bg-primary/15 text-primary-foreground"
+                          ? "bg-primary/35 text-white"
                           : locked
                           ? "bg-coral/15 text-coral"
                           : "bg-white/[0.06] text-white/50"
@@ -549,8 +549,8 @@ export default function BattleRoomPage() {
                     </span>
                   </div>
 
-                  <div className="bg-ink-panel rounded-xl border border-white/[0.08] p-3.5">
-                    <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.15em] text-primary-foreground/60">
+                  <div className="bg-ink-panel rounded-lg border border-white/[0.08] p-3.5">
+                    <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.15em] text-saffron/80">
                       Explanation
                     </p>
                     <p className="text-xs leading-relaxed text-white/75">{reveal.explanation}</p>
@@ -559,7 +559,7 @@ export default function BattleRoomPage() {
                   <button
                     onClick={next}
                     disabled={finishing}
-                    className="w-full rounded-xl bg-saffron py-3.5 text-sm font-black text-ink shadow-lg shadow-saffron/20 transition-colors hover:bg-saffron/90 disabled:opacity-60"
+                    className="w-full rounded-lg bg-saffron py-3.5 text-sm font-bold text-ink shadow-lg shadow-saffron/20 transition-colors hover:bg-saffron/90 disabled:opacity-60"
                   >
                     {finishing
                       ? "Computing your rank…"

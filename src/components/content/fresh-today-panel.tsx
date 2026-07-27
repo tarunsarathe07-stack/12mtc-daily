@@ -61,13 +61,13 @@ export function FreshTodayPanel() {
       </div>
 
       {failed ? (
-        <p className="rounded-xl border border-border bg-card/70 p-3 text-sm text-muted-foreground">
+        <p className="rounded-lg border border-border bg-card/70 p-3 text-sm text-muted-foreground">
           Fresh feed could not load. Check internet access or source availability.
         </p>
       ) : loading ? (
         <div className="space-y-3">
           {[0, 1, 2].map((i) => (
-            <div key={i} className="h-14 animate-pulse rounded-xl bg-muted" />
+            <div key={i} className="h-14 animate-pulse rounded-lg bg-muted" />
           ))}
         </div>
       ) : (

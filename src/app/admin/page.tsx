@@ -142,10 +142,10 @@ export default function AdminPage() {
   };
 
   const statCards = [
-    { label: "Pending Review", value: stats.review, icon: Clock, color: "text-amber-500" },
+    { label: "Pending Review", value: stats.review, icon: Clock, color: "text-saffron" },
     { label: "Published", value: stats.published, icon: CheckCircle, color: "text-primary" },
-    { label: "Rejected", value: stats.rejected, icon: XCircle, color: "text-red-500" },
-    { label: "Total Items", value: stats.total, icon: FileText, color: "text-blue-500" },
+    { label: "Rejected", value: stats.rejected, icon: XCircle, color: "text-coral" },
+    { label: "Total Items", value: stats.total, icon: FileText, color: "text-primary" },
   ];
 
   const missingTopicHints =
@@ -190,7 +190,7 @@ export default function AdminPage() {
             className={
               daily.published >= daily.target
                 ? "border-primary/30 bg-primary/5"
-                : "border-amber-300 bg-amber-50"
+                : "border-saffron/40 bg-saffron-soft"
             }
           >
             <CardContent className="p-5 space-y-3">
@@ -198,7 +198,7 @@ export default function AdminPage() {
                 <div>
                   <h2 className="font-bold">
                     Today&apos;s edition ({daily.date}):{" "}
-                    <span className={daily.published >= daily.target ? "text-primary" : "text-amber-700"}>
+                    <span className={daily.published >= daily.target ? "text-primary" : "text-ink"}>
                       {daily.published}/{daily.target} ready
                     </span>
                   </h2>
@@ -228,7 +228,7 @@ export default function AdminPage() {
                     className={`flex aspect-square flex-col items-center justify-center rounded-md text-xs font-bold ${
                       slot
                         ? "bg-primary text-white"
-                        : "border border-dashed border-amber-400 bg-background text-amber-600"
+                        : "border border-dashed border-saffron bg-background text-ink"
                     }`}
                   >
                     <span>{idx + 1}</span>
@@ -247,7 +247,7 @@ export default function AdminPage() {
                     Topic mix
                   </p>
                   {missingTopicHints.length > 0 && (
-                    <p className="text-xs text-amber-700">
+                    <p className="text-xs text-ink">
                       Missing: {missingTopicHints.join(", ")}
                     </p>
                   )}
@@ -275,7 +275,7 @@ export default function AdminPage() {
                   economy, and policy stories every day.
                 </p>
                 {daily.sourceConcentrationWarning && (
-                  <p className="mt-2 text-xs font-semibold text-amber-700">
+                  <p className="mt-2 text-xs font-semibold text-ink">
                     Source concentration: {daily.sourceConcentrationWarning}
                   </p>
                 )}
@@ -286,7 +286,7 @@ export default function AdminPage() {
                 daily.questionFallbackActive ||
                 daily.cardsWithContextQuestions < daily.target) && (
                 <div className="flex items-start gap-2 rounded-lg bg-background/70 p-2.5 text-xs">
-                  <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600" />
+                  <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-saffron" />
                   <span className="text-muted-foreground">
                     Daily quiz coverage: <strong>{daily.cardsWithDailyNewsQuestion}</strong>/
                     {daily.target} cards. Card deep-dives: <strong>{daily.cardsWithContextQuestions}</strong>/
@@ -364,7 +364,7 @@ export default function AdminPage() {
               <Card className="bg-muted/50">
                 <CardContent className="p-4 space-y-2">
                   {result.error ? (
-                    <div className="flex items-center gap-2 text-red-600">
+                    <div className="flex items-center gap-2 text-coral">
                       <AlertTriangle className="h-4 w-4" />
                       <span className="text-sm font-medium">{result.error}</span>
                     </div>
@@ -383,13 +383,13 @@ export default function AdminPage() {
                           </Badge>
                         )}
                         {result.questions !== undefined && (
-                          <Badge className="bg-blue-100 text-blue-700">
+                          <Badge className="bg-primary/10 text-primary">
                             {result.questions} questions created
                           </Badge>
                         )}
                       </div>
                       {result.errors && result.errors.length > 0 && (
-                        <div className="text-xs text-red-600 space-y-1">
+                        <div className="space-y-1 text-xs text-coral">
                           {result.errors.map((e, i) => (
                             <p key={i}>{e}</p>
                           ))}

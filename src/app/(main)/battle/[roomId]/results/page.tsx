@@ -139,7 +139,7 @@ export default function BattleResultsPage() {
               <Flame className="h-5 w-5 text-saffron" />
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.16em] text-muted-foreground">Current streak</p>
-                <p className="text-xl font-black text-saffron">{data.streak} days</p>
+                <p className="text-xl font-black text-primary">{data.streak} days</p>
               </div>
             </div>
           </div>
@@ -147,13 +147,13 @@ export default function BattleResultsPage() {
           <ScoreSummary data={data} grade={grade} ringDash={ringDash} />
 
           <div className="grid gap-5 lg:grid-cols-[1.25fr_0.75fr]">
-            <div className="stitch-card rounded-xl p-5 sm:p-6">
+            <div className="stitch-card rounded-lg p-5 sm:p-6">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h2 className="text-xl font-black text-primary">Question outcome</h2>
                   <p className="mt-1 text-sm text-muted-foreground">Every answer from this 12-question round</p>
                 </div>
-                <p className="text-4xl font-black tabular-nums text-saffron">{data.accuracy}%</p>
+                <p className="text-4xl font-black tabular-nums text-primary">{data.accuracy}%</p>
               </div>
               <div className="mt-8 grid grid-cols-6 gap-2 sm:grid-cols-12">
                 {data.review.map((answer) => (
@@ -180,16 +180,16 @@ export default function BattleResultsPage() {
               </div>
             </div>
 
-            <div className="stitch-card rounded-xl p-5 sm:p-6">
+            <div className="stitch-card rounded-lg p-5 sm:p-6">
               <h2 className="text-xl font-black text-primary">Current streak</h2>
               <p className="mt-1 text-sm text-muted-foreground">Qualified daily practice days</p>
-              <p className="mt-6 text-3xl font-bold tabular-nums text-[#a86f00]">{data.streak}</p>
+              <p className="mt-6 text-3xl font-bold tabular-nums text-primary">{data.streak}</p>
               <p className="mt-1 text-sm font-semibold text-muted-foreground">days in your current run</p>
               <div className="mt-7 grid grid-cols-7 gap-2">
                 {Array.from({ length: 14 }).map((_, index) => (
                   <span
                     key={index}
-                    className="aspect-square rounded-[0.7rem] bg-saffron"
+                    className="aspect-square rounded-lg bg-saffron"
                     style={{ opacity: index < Math.min(14, data.streak) ? 0.95 : 0.14 }}
                     aria-hidden
                   />
@@ -199,12 +199,12 @@ export default function BattleResultsPage() {
           </div>
 
           {data.weakTopics.length > 0 && (
-            <div className="stitch-card rounded-xl p-5 sm:p-6">
+            <div className="stitch-card rounded-lg p-5 sm:p-6">
               <div className="grid gap-5 lg:grid-cols-[0.55fr_1fr] lg:items-center">
                 <div>
                   <h2 className="text-xl font-black text-primary">Topic mastery</h2>
                   <p className="mt-2 text-sm leading-6 text-muted-foreground">Your lowest topics are not a failure signal. They are tomorrow&apos;s fastest marks.</p>
-                  <Link href={`/battle/queue?mode=topic&topic=${data.weakTopics[0].topic}`} className="mt-5 inline-flex rounded-lg bg-primary px-5 py-3 text-sm font-bold text-white shadow-[0_3px_0_#236448]">Revise weak topic</Link>
+                  <Link href={`/battle/queue?mode=topic&topic=${data.weakTopics[0].topic}`} className="brand-action mt-5 px-5 py-3 text-sm">Revise weak topic</Link>
                 </div>
                 <div className="space-y-4 rounded-lg bg-white p-4 ring-1 ring-border">
                   {data.weakTopics.slice(0, 3).map((topic) => (
@@ -214,7 +214,7 @@ export default function BattleResultsPage() {
                         <span className="tabular-nums text-primary">{topic.mastery_pct}%</span>
                       </div>
                       <div className="h-2.5 overflow-hidden rounded-full bg-primary/10">
-                        <div className="h-full rounded-full bg-primary" style={{ width: `${Math.max(4, topic.mastery_pct)}%` }} />
+                        <div className="h-full rounded-full bg-saffron" style={{ width: `${Math.max(4, topic.mastery_pct)}%` }} />
                       </div>
                     </div>
                   ))}
@@ -226,7 +226,7 @@ export default function BattleResultsPage() {
 
         {/* ── Rating + XP movement ── */}
         <div className="grid grid-cols-2 gap-3">
-          <Card className="soft-card rounded-xl">
+          <Card className="soft-card rounded-lg">
             <CardContent className="space-y-1 p-4 text-center">
               <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
                 {data.ratingChange >= 0 ? (
@@ -249,13 +249,13 @@ export default function BattleResultsPage() {
               </p>
             </CardContent>
           </Card>
-          <Card className="soft-card rounded-xl">
+          <Card className="soft-card rounded-lg">
             <CardContent className="space-y-1 p-4 text-center">
               <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
                 <Zap className="h-3.5 w-3.5 text-saffron" />
                 XP earned
               </div>
-              <p className="text-2xl font-black tabular-nums text-saffron">
+              <p className="text-2xl font-black tabular-nums text-primary">
                 <CountUp value={data.xpEarned} prefix="+" />
               </p>
               <p className="text-[11px] text-muted-foreground">
@@ -268,7 +268,7 @@ export default function BattleResultsPage() {
 
         {/* ── Weak-topic insight → drill + counselling funnel ── */}
         {data.weakTopics.length > 0 && (
-          <Card className="soft-card rounded-xl border-saffron/25 bg-saffron-soft">
+          <Card className="soft-card rounded-lg border-saffron/25 bg-saffron-soft">
             <CardContent className="space-y-3 p-4">
               <p className="text-sm font-bold">What to revise next</p>
               <div className="flex flex-wrap gap-2">
@@ -286,7 +286,7 @@ export default function BattleResultsPage() {
               </div>
               <Link
                 href={`/battle/queue?mode=topic&topic=${data.weakTopics[0].topic}`}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-2.5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90 capitalize"
+                className="brand-secondary flex w-full gap-2 py-2.5 text-sm capitalize"
               >
                 <Swords className="h-4 w-4" />
                 Revise {data.weakTopics[0].topic} now
@@ -294,7 +294,7 @@ export default function BattleResultsPage() {
               <FunnelLink
                 href={tmcLink("results-counselling", "counselling-call")}
                 label={CTA_LABELS.counselling}
-                className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-saffron/40 bg-card py-2.5 text-sm font-semibold text-[#8a5200] transition-colors hover:bg-saffron-soft"
+                className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-saffron/40 bg-card py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-saffron-soft"
               >
                 <Phone className="h-4 w-4" />
                 {CTA_LABELS.counselling}
@@ -318,7 +318,7 @@ export default function BattleResultsPage() {
         {showReview && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-2">
             {data.review.map((r) => (
-              <Card key={r.index} className="soft-card rounded-2xl border-0">
+              <Card key={r.index} className="soft-card rounded-lg border-0">
                 <CardContent className="space-y-1.5 p-3">
                   <div className="flex items-start gap-2">
                     <span
@@ -361,21 +361,21 @@ export default function BattleResultsPage() {
                 // user dismissed share sheet
               }
             }}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-primary/30 bg-primary/5 py-3 text-sm font-bold text-primary transition-colors hover:bg-primary/10"
+            className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-primary/30 bg-primary/5 py-3 text-sm font-bold text-primary transition-colors hover:bg-primary/10"
           >
             Share your rank {grade} result
           </button>
           <div className="grid grid-cols-2 gap-3">
             <Link
               href={`/battle/queue?mode=${data.mode}${data.topic ? `&topic=${data.topic}` : ""}`}
-              className="flex items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90"
+              className="brand-action flex gap-2 py-3 text-sm"
             >
               <Swords className="h-4 w-4" />
               Rematch
             </Link>
             <Link
               href="/shorts"
-              className="flex items-center justify-center gap-2 rounded-xl border-2 border-border py-3 text-sm font-bold transition-colors hover:bg-muted"
+              className="flex items-center justify-center gap-2 rounded-lg border-2 border-border py-3 text-sm font-bold transition-colors hover:bg-muted"
             >
               <BookOpen className="h-4 w-4" />
               Read today&apos;s 12
@@ -386,10 +386,10 @@ export default function BattleResultsPage() {
           <FunnelLink
             href={tmcLink("results-join", "join")}
             label={CTA_LABELS.join}
-            className="block rounded-xl border border-primary/20 bg-primary/5 p-4 transition-all hover:-translate-y-0.5 hover:border-primary/35"
+            className="block rounded-lg border border-primary/20 bg-primary/5 p-4 transition-all hover:-translate-y-0.5 hover:border-primary/35"
           >
             <div className="flex items-center gap-3">
-              <span className="bg-brand-gradient flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm font-black text-white">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-sm font-black text-white">
                 12
               </span>
               <div className="flex-1">
@@ -429,7 +429,7 @@ function ScoreSummary({
     <Card className="overflow-hidden border-primary/15 bg-white shadow-lg shadow-ink/5">
       <CardContent className="p-5 sm:p-6">
         <div className="grid items-center gap-5 sm:grid-cols-[5rem_1fr_6rem]">
-          <div className="mx-auto flex h-20 w-20 flex-col items-center justify-center rounded-2xl bg-ink text-white sm:mx-0">
+          <div className="mx-auto flex h-20 w-20 flex-col items-center justify-center rounded-lg bg-ink text-white sm:mx-0">
             <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/50">Rank</span>
             <span className="text-5xl font-black leading-none text-saffron">{grade}</span>
           </div>

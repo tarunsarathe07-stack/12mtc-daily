@@ -122,7 +122,7 @@ export default async function BlogArticlePage({
           <div className="flex w-full items-center gap-2 sm:w-auto">
             <Link
               href="/today"
-              className="flex-1 rounded-xl border border-border bg-card px-4 py-2.5 text-center text-sm font-bold transition-colors hover:bg-muted sm:flex-none"
+              className="brand-action flex-1 px-4 py-2.5 text-center text-sm sm:flex-none"
             >
               Try today&apos;s 12
             </Link>
@@ -130,7 +130,7 @@ export default async function BlogArticlePage({
               href={tmcLink("blog-sticky", "join")}
               label={CTA_LABELS.join}
               eventType="blog_cta_click"
-              className="flex-1 rounded-xl bg-primary px-4 py-2.5 text-center text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90 sm:flex-none"
+              className="brand-secondary flex-1 px-4 py-2.5 text-center text-sm sm:flex-none"
             >
               Join 12 Minutes to CLAT
             </FunnelLink>

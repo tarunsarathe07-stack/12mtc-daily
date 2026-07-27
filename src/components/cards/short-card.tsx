@@ -1,9 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
-import { Bookmark, CalendarDays, ChevronDown, ChevronRight, Share2, ShieldCheck } from "lucide-react";
+import { Bookmark, CalendarDays, Check, ChevronDown, ChevronRight, Share2, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { stripMarkdown } from "@/lib/utils/text";
 import type { ContentItem } from "@/lib/types/database";
@@ -17,6 +18,7 @@ interface ShortCardProps {
 }
 
 export function ShortCard({ item, className, bookmarked, onBookmark }: ShortCardProps) {
+  const [shared, setShared] = useState(false);
   const sourceName = (() => {
     const cited = item.citations?.[0]?.source;
     if (cited) return cited;
@@ -32,8 +34,23 @@ export function ShortCard({ item, className, bookmarked, onBookmark }: ShortCard
         .slice(0, 2)
     : [];
 
+  async function shareCard() {
+    const url = `${window.location.origin}/daily/${item.slug}`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: item.title, text: item.summary, url });
+      } else {
+        await navigator.clipboard.writeText(url);
+      }
+      setShared(true);
+      window.setTimeout(() => setShared(false), 1800);
+    } catch {
+      // The native share sheet may be dismissed without completing.
+    }
+  }
+
   return (
-    <article className={cn("stitch-card-strong flex h-full flex-col overflow-hidden rounded-xl bg-white", className)}>
+    <article className={cn("stitch-card-strong flex h-full flex-col overflow-hidden rounded-lg bg-white", className)}>
       <div className="stitch-image-mask relative h-[18dvh] min-h-[130px] max-h-[190px] shrink-0 bg-primary/8">
         {item.image_url ? (
           <Image
@@ -67,7 +84,7 @@ export function ShortCard({ item, className, bookmarked, onBookmark }: ShortCard
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto py-5 [scrollbar-width:thin]">
-          <h2 className="text-2xl font-bold leading-snug sm:text-3xl">
+          <h2 className="text-xl font-bold leading-snug sm:text-2xl">
             {item.title}
           </h2>
 
@@ -97,8 +114,16 @@ export function ShortCard({ item, className, bookmarked, onBookmark }: ShortCard
         <div className="flex items-center justify-between border-t border-border/70 pt-4">
           <span className="rounded-md bg-primary/10 px-3 py-1.5 text-xs font-bold text-primary">{item.daily_slot ?? "1"}/12</span>
           <div className="flex items-center gap-2">
-            <button className="rounded-lg p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground" aria-label="Share"><Share2 className="h-4 w-4" /></button>
-            <Link href={`/daily/${item.slug}`} className="inline-flex items-center gap-1 rounded-lg bg-primary px-4 py-2 text-xs font-bold text-white shadow-[0_2px_0_#236448] transition hover:-translate-y-0.5">
+            <button
+              type="button"
+              onClick={shareCard}
+              className="rounded-lg p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground"
+              aria-label={shared ? "Link copied" : "Share this card"}
+              title={shared ? "Link copied" : "Share"}
+            >
+              {shared ? <Check className="h-4 w-4 text-primary" /> : <Share2 className="h-4 w-4" />}
+            </button>
+            <Link href={`/daily/${item.slug}`} className="brand-secondary gap-1 px-4 py-2 text-xs">
               Full context <ChevronRight className="h-3.5 w-3.5" />
             </Link>
           </div>

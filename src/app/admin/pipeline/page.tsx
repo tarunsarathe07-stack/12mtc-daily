@@ -55,7 +55,7 @@ export default function AdminPipelinePage() {
 
       <div className="mx-auto max-w-5xl p-6 space-y-3">
         {staleFixed > 0 && (
-          <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <div className="rounded-lg border border-saffron/30 bg-saffron-soft px-4 py-3 text-sm text-ink">
             Recovered {staleFixed} timed-out pipeline run{staleFixed === 1 ? "" : "s"} and marked them failed.
           </div>
         )}
@@ -84,9 +84,9 @@ export default function AdminPipelinePage() {
                     {run.status === "completed" ? (
                       <CheckCircle className="h-4 w-4 text-primary" />
                     ) : run.status === "failed" ? (
-                      <XCircle className="h-4 w-4 text-red-500" />
+                      <XCircle className="h-4 w-4 text-coral" />
                     ) : (
-                      <Loader2 className="h-4 w-4 animate-spin text-amber-500" />
+                      <Loader2 className="h-4 w-4 animate-spin text-saffron" />
                     )}
                     <span className="text-sm font-medium">
                       {new Date(run.created_at).toLocaleString("en-IN")}
@@ -98,8 +98,8 @@ export default function AdminPipelinePage() {
                       run.status === "completed"
                         ? "bg-primary/10 text-primary"
                         : run.status === "failed"
-                        ? "bg-red-100 text-red-700"
-                        : "bg-amber-100 text-amber-700"
+                        ? "bg-coral-soft text-coral"
+                        : "bg-saffron-soft text-ink"
                     )}
                   >
                     {run.status}
@@ -115,7 +115,7 @@ export default function AdminPipelinePage() {
                 </div>
 
                 {run.error_log && (
-                  <div className="rounded bg-red-50 p-2 text-xs text-red-700 whitespace-pre-wrap">
+                  <div className="rounded bg-coral-soft p-2 text-xs text-coral whitespace-pre-wrap">
                     {run.error_log}
                   </div>
                 )}

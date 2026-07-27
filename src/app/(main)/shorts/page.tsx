@@ -169,8 +169,9 @@ function ShortsPageContent() {
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search news — try “RBI” or “Supreme Court”"
-            className="h-10 w-full rounded-xl border border-border bg-card pl-9 pr-9 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            aria-label="Search news archive"
+            placeholder="Search news or topics"
+            className="h-10 w-full rounded-lg border border-border bg-card pl-9 pr-9 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           />
           {query && (
             <button
@@ -190,15 +191,16 @@ function ShortsPageContent() {
       </div>
 
       {/* Day switcher — pick any past day and revise it */}
-      <div className="mx-auto flex w-full max-w-7xl items-center gap-2 overflow-x-auto px-4 pt-3 sm:px-6 lg:px-8">
+      <div className="mx-auto flex w-full max-w-7xl items-center gap-2 overflow-x-auto px-4 pb-1 pt-3 sm:px-6 lg:px-8">
         {dates.map((d) => {
           const count = items.filter((i) => itemDate(i) === d).length;
           return (
             <button
               key={d}
               onClick={() => setFilter(d)}
+              aria-pressed={filter === d}
               className={cn(
-                "shrink-0 rounded-full border px-3 py-1 text-xs font-semibold transition-colors",
+                "shrink-0 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors",
                 filter === d
                   ? "border-primary bg-primary text-primary-foreground"
                   : "border-border bg-card text-muted-foreground hover:bg-muted"
@@ -211,8 +213,9 @@ function ShortsPageContent() {
         })}
         <button
           onClick={() => setFilter("saved")}
+          aria-pressed={filter === "saved"}
           className={cn(
-            "flex shrink-0 items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold transition-colors",
+            "flex shrink-0 items-center gap-1 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors",
             filter === "saved"
               ? "border-primary bg-primary text-primary-foreground"
               : "border-border bg-card text-muted-foreground hover:bg-muted"
@@ -223,8 +226,9 @@ function ShortsPageContent() {
         </button>
         <button
           onClick={() => setFilter("all")}
+          aria-pressed={filter === "all"}
           className={cn(
-            "shrink-0 rounded-full border px-3 py-1 text-xs font-semibold transition-colors",
+            "shrink-0 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors",
             filter === "all"
               ? "border-primary bg-primary text-primary-foreground"
               : "border-border bg-card text-muted-foreground hover:bg-muted"
@@ -242,16 +246,16 @@ function ShortsPageContent() {
             ))}
           </div>
           <div className="hidden lg:block" />
-          <div className="hidden rounded-xl border border-border bg-primary/8 lg:row-span-2 lg:block" />
+          <div className="hidden rounded-lg border border-border bg-primary/8 lg:row-span-2 lg:block" />
           <div className="min-h-0 lg:col-start-2">
             <CardSkeleton />
           </div>
-          <div className="hidden rounded-xl border border-border bg-card p-4 lg:block">
+          <div className="hidden rounded-lg border border-border bg-card p-4 lg:block">
             <div className="space-y-3">
               <div className="h-3 w-20 animate-pulse rounded bg-muted" />
               <div className="h-5 w-4/5 animate-pulse rounded bg-muted" />
-              <div className="h-20 animate-pulse rounded-2xl bg-muted" />
-              <div className="h-28 animate-pulse rounded-2xl bg-muted" />
+              <div className="h-20 animate-pulse rounded-lg bg-muted" />
+              <div className="h-28 animate-pulse rounded-lg bg-muted" />
             </div>
           </div>
         </div>
@@ -283,7 +287,7 @@ function ShortsPageContent() {
         <div className="fixed inset-x-0 bottom-20 z-30 px-4">
           <Link
             href="/battle/queue?mode=daily"
-            className="mx-auto flex w-full max-w-md items-center justify-center gap-2 rounded-lg bg-primary py-3 text-sm font-bold text-white shadow-[0_3px_0_#236448] transition-colors hover:bg-primary/90"
+            className="brand-action mx-auto flex w-full max-w-md gap-2 py-3 text-sm"
           >
             <Swords className="h-4 w-4" />
             Done reading? Take today&apos;s quiz
@@ -299,10 +303,10 @@ function ShortsPageFallback() {
     <>
       <TopBar title="News" />
       <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <div className="mb-4 h-10 w-full max-w-md animate-pulse rounded-xl bg-muted" />
+        <div className="mb-4 h-10 w-full max-w-md animate-pulse rounded-lg bg-muted" />
         <div className="mb-5 flex gap-2">
           {Array.from({ length: 5 }).map((_, index) => (
-            <span key={index} className="h-7 w-24 animate-pulse rounded-full bg-muted" />
+            <span key={index} className="h-7 w-24 animate-pulse rounded-lg bg-muted" />
           ))}
         </div>
         <div className="mx-auto max-w-[690px]">

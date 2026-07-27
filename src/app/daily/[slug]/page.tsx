@@ -115,7 +115,7 @@ export default async function DailyExplainerPage({
           </h1>
 
           {/* Source trust strip */}
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-border bg-card px-3.5 py-2.5 text-xs text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-border bg-card px-3.5 py-2.5 text-xs text-muted-foreground">
             <span className="flex items-center gap-1.5 font-semibold text-foreground">
               <ShieldCheck className="h-3.5 w-3.5 text-primary" />
               {item.is_demo ? "Demo content" : "Human-reviewed"}
@@ -153,10 +153,10 @@ export default async function DailyExplainerPage({
         {item.why_it_matters && (
           <Card className="border-saffron/35 bg-saffron-soft">
             <CardContent className="p-4">
-              <p className="text-xs font-bold uppercase tracking-wide text-[#8a5200] mb-1">
+              <p className="mb-1 text-xs font-bold uppercase tracking-wide text-primary">
                 Why it matters for CLAT
               </p>
-              <p className="text-sm text-[#8a5200] leading-relaxed">{item.why_it_matters}</p>
+              <p className="text-sm leading-relaxed text-foreground/80">{item.why_it_matters}</p>
             </CardContent>
           </Card>
         )}
@@ -165,7 +165,7 @@ export default async function DailyExplainerPage({
         {item.body ? (
           <Markdown body={item.body} />
         ) : (
-          <p className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">
+          <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
             The full study note for this item is coming soon — the brief above
             covers the testable core.
           </p>
@@ -175,7 +175,7 @@ export default async function DailyExplainerPage({
 
         {/* Issue map — topic + the terms this story hangs on */}
         {keyTerms.length > 0 && (
-          <section className="rounded-2xl border border-border bg-card p-5">
+          <section className="rounded-lg border border-border bg-card p-5">
             <p className="mb-3 flex items-center gap-2 text-sm font-bold">
               <Network className="h-4 w-4 text-primary" />
               Key terms to remember
@@ -201,7 +201,7 @@ export default async function DailyExplainerPage({
 
         {/* How CLAT may ask this */}
         {item.why_it_matters && (
-          <section className="border-saffron/40 bg-saffron-soft/50 rounded-2xl border p-5">
+          <section className="rounded-lg border border-saffron/40 bg-saffron-soft/50 p-5">
             <p className="mb-2 flex items-center gap-2 text-sm font-bold">
               <Target className="h-4 w-4 text-saffron" />
               How CLAT may ask this
@@ -245,10 +245,10 @@ export default async function DailyExplainerPage({
 
       {/* In-flow sticky action: stays useful without covering study content. */}
       <div className="sticky bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-30 px-4 pb-3 lg:bottom-4">
-        <div className="mx-auto flex w-full max-w-xl gap-2 rounded-2xl border border-border/80 bg-background/95 p-2 shadow-xl shadow-ink/10 backdrop-blur-xl">
+        <div className="mx-auto flex w-full max-w-xl gap-2 rounded-lg border border-border/80 bg-background/95 p-2 shadow-xl shadow-ink/10 backdrop-blur-xl">
           <a
             href={questions.length > 0 ? "#go-deeper-quiz" : "/battle"}
-            className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary py-3 text-sm font-bold text-white shadow-[0_3px_0_#236448] transition-colors hover:bg-primary/90"
+            className="brand-action flex flex-1 gap-2 py-3 text-sm"
           >
             <Swords className="h-4 w-4" />
             {questions.length > 0 ? "Practice this card" : "Start quiz"}
@@ -256,7 +256,7 @@ export default async function DailyExplainerPage({
           {nextItem ? (
             <Link
               href={`/daily/${nextItem.slug}`}
-              className="flex flex-1 items-center justify-center gap-1.5 truncate rounded-xl border-2 border-border bg-card py-3 text-sm font-bold shadow-lg transition-colors hover:bg-muted"
+              className="flex flex-1 items-center justify-center gap-1.5 truncate rounded-lg border-2 border-border bg-card py-3 text-sm font-bold shadow-lg transition-colors hover:bg-muted"
             >
               <span className="truncate">
                 Next: {nextItem.daily_slot ? `#${nextItem.daily_slot}` : "card"}
@@ -266,7 +266,7 @@ export default async function DailyExplainerPage({
           ) : (
             <Link
               href="/shorts"
-              className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border-2 border-border bg-card py-3 text-sm font-bold shadow-lg transition-colors hover:bg-muted"
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border-2 border-border bg-card py-3 text-sm font-bold shadow-lg transition-colors hover:bg-muted"
             >
               Back to deck
             </Link>

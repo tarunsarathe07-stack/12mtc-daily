@@ -14,11 +14,11 @@ import { BookOpen, Swords, Target, FileText, UserRound } from "lucide-react";
 import type { ConversionEvent } from "@/lib/types/database";
 
 const STAGES = [
-  { type: "read_12_complete", label: "Finished daily 12", icon: BookOpen, color: "text-blue-500" },
+  { type: "read_12_complete", label: "Finished daily 12", icon: BookOpen, color: "text-primary" },
   { type: "battle_complete", label: "Battles completed", icon: Swords, color: "text-primary" },
-  { type: "weak_topic_shown", label: "Weak topics shown", icon: Target, color: "text-amber-500" },
+  { type: "weak_topic_shown", label: "Weak topics shown", icon: Target, color: "text-saffron" },
   { type: "blog_cta_click", label: "Blog CTA clicks", icon: FileText, color: "text-primary" },
-  { type: "profile_cta_click", label: "Profile CTA clicks", icon: UserRound, color: "text-rose-500" },
+  { type: "profile_cta_click", label: "Profile CTA clicks", icon: UserRound, color: "text-coral" },
 ];
 
 export default function FunnelPage() {
@@ -57,8 +57,8 @@ export default function FunnelPage() {
 
       <div className="mx-auto max-w-5xl space-y-6 p-6">
         {error && (
-          <Card className="border-rose-200 bg-rose-50">
-            <CardContent className="p-4 text-sm text-rose-700">{error}</CardContent>
+          <Card className="border-coral/25 bg-coral-soft">
+            <CardContent className="p-4 text-sm text-coral">{error}</CardContent>
           </Card>
         )}
 

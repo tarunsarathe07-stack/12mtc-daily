@@ -96,9 +96,9 @@ export function CardStack({ items, onActiveCard, bookmarkedIds, onBookmark }: Ca
       <footer className="mx-auto mt-5 flex w-full max-w-[690px] items-center justify-between gap-3 pb-3">
         <button onClick={goPrev} disabled={safeIndex === 0} className="stitch-pill inline-flex h-12 w-12 items-center justify-center rounded-lg text-primary disabled:opacity-35" aria-label="Previous card"><ChevronLeft className="h-5 w-5" /></button>
         {safeIndex === items.length - 1 ? (
-          <Link href="/battle/queue?mode=daily" className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-5 text-sm font-bold text-white shadow-[0_3px_0_#236448] transition hover:-translate-y-0.5"><Swords className="h-4 w-4" /> Quiz</Link>
+          <Link href="/battle/queue?mode=daily" className="brand-action h-12 flex-1 gap-2 px-5 text-sm"><Swords className="h-4 w-4" /> Quiz</Link>
         ) : (
-          <button onClick={goNext} className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-5 text-sm font-bold text-white shadow-[0_3px_0_#236448] transition hover:-translate-y-0.5">Read next <ChevronRight className="h-4 w-4" /></button>
+          <button onClick={goNext} className="brand-action h-12 flex-1 gap-2 px-5 text-sm">Read next <ChevronRight className="h-4 w-4" /></button>
         )}
       </footer>
     </div>

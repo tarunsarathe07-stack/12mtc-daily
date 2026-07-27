@@ -58,7 +58,7 @@ export default function SignupPage() {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center px-4">
         <div className="w-full max-w-sm space-y-4 text-center">
-          <div className="flex h-14 w-14 mx-auto items-center justify-center rounded-2xl bg-primary/10 text-primary">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-lg bg-primary/10 text-primary">
             <Swords className="h-7 w-7" />
           </div>
           <h2 className="text-xl font-bold">Check your email</h2>
@@ -77,7 +77,7 @@ export default function SignupPage() {
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center bg-background px-4 py-8">
-      <div className="w-full max-w-md rounded-xl border border-border bg-white p-6 shadow-sm sm:p-8">
+      <div className="w-full max-w-md rounded-lg border border-border bg-white p-6 shadow-sm sm:p-8">
         <div className="flex flex-col items-center gap-2">
           <BrandMark size={56} priority />
           <h1 className="text-2xl font-bold">Create your account</h1>
@@ -154,7 +154,7 @@ export default function SignupPage() {
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
 
-          <Button type="submit" className="h-11 w-full font-bold shadow-[0_3px_0_#236448]" disabled={loading}>
+          <Button type="submit" variant="brand" className="h-11 w-full" disabled={loading}>
             {loading ? "Creating account..." : "Create Account"}
           </Button>
           <p className="text-center text-xs leading-5 text-muted-foreground">
